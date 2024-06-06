@@ -1440,7 +1440,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     width: '100%', 
-    alignItems: 'center', // Center the logo horizontally
+    alignItems: 'center', 
     marginTop: 20,
     marginBottom: 5,
   },
@@ -1455,7 +1455,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'cornflowerblue',
     marginBottom: 20,
-    textAlign: 'center', // Ensure the text is centered
+    textAlign: 'center', 
   },
   pickerContainer: {
     flexDirection: 'column',
@@ -1464,8 +1464,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   picker: {
-    width: '50%', // Adjust width as needed
-    height: 40, // Adjust height as needed
+    width: '50%',
+    height: 40, 
     marginHorizontal: 5,
   },
   button: {
@@ -1501,8 +1501,8 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center', // Align items vertically center within the row
-    justifyContent: 'flex-start', // Align items to the left of the row
+    alignItems: 'center', 
+    justifyContent: 'flex-start', 
     marginBottom: 16,
     width: '100%',
   },
@@ -1536,14 +1536,3 @@ const styles = StyleSheet.create({
 
     
 export default App;
-
-
-/*import React from 'react';
-import AppNavigator from './navigation';
-
-const App = () => {
-  return <AppNavigator />;
-};
-
-export default App;
-*/
