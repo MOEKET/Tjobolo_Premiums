@@ -1105,115 +1105,107 @@ useEffect(() => {
 
 
 <TouchableOpacity
-        style={styles.button}
-        onPress={() => setShowFamilyProviderBenefitPicker(!showFamilyProviderBenefitPicker)}
-      >
-        <Text style={styles.buttonText}>Monthly Provider Benefit</Text>
-      </TouchableOpacity>
+  style={styles.button}
+  onPress={() => setShowFamilyProviderBenefitPicker(!showFamilyProviderBenefitPicker)}
+>
+  <Text style={styles.buttonText}>Monthly Provider Benefit</Text>
+</TouchableOpacity>
 
-      {showFamilyProviderBenefitPicker && (
-        <View style={styles.container}>
-          <View style={styles.column}>
-            {Object.keys(monthlyProviderBenefitData).map((insuredType) => (
-              <View key={insuredType} style={styles.row}>
-                <RadioButton
-                  value={insuredType}
-                  status={selectedMonthlyProviderInsuredTypes.includes(insuredType) ? 'checked' : 'unchecked'}
-                  onPress={() => handleMonthlyProviderRadioButtonPress(insuredType)}
-                />
-                <Text style={styles.radioLabel}>
-                  {selectedMonthlyProviderInsuredTypes.includes(insuredType)
-                    ? insuredTypeShortNames[insuredType]
-                    : insuredTypeLongNames[insuredType]}
+{showFamilyProviderBenefitPicker && (
+  <View style={styles.container}>
+    <View style={styles.column}>
+      {Object.keys(monthlyProviderBenefitData).map((insuredType) => (
+        <View key={insuredType} style={styles.row}>
+          <RadioButton
+            value={insuredType}
+            status={selectedMonthlyProviderInsuredTypes.includes(insuredType) ? 'checked' : 'unchecked'}
+            onPress={() => handleMonthlyProviderRadioButtonPress(insuredType)}
+          />
+          <Text style={styles.radioLabel}>
+            {selectedMonthlyProviderInsuredTypes.includes(insuredType)
+              ? insuredTypeShortNames[insuredType]
+              : insuredTypeLongNames[insuredType]}
+          </Text>
+          {selectedMonthlyProviderInsuredTypes.includes(insuredType) && (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={familyProviderSelectedAgeBands[insuredType]}
+                style={styles.picker}
+                onValueChange={(value) => {
+                  setFamilyProviderSelectedAgeBands((prevAgeBands) => ({
+                    ...prevAgeBands,
+                    [insuredType]: value,
+                  }));
+                }}
+              >
+                <Picker.Item label="Age Band" value="" />
+                {getAgeBands(monthlyProviderBenefitData, insuredType).map((band) => (
+                  <Picker.Item key={band} label={band} value={band} />
+                ))}
+              </Picker>
+              <Picker
+                selectedValue={familyProviderSelectedSumAssured[insuredType]}
+                style={styles.picker}
+                onValueChange={(value) =>
+                  setFamilyProviderSelectedSumAssured((prevSumAssured) => ({
+                    ...prevSumAssured,
+                    [insuredType]: value,
+                  }))
+                }
+              >
+                <Picker.Item label="Sum Assured" value="" />
+                {getSumAssuredAmounts(
+                  monthlyProviderBenefitData,
+                  insuredType,
+                  familyProviderSelectedAgeBands[insuredType]
+                ).map((amount) => (
+                  <Picker.Item key={amount} label={amount} value={amount} />
+                ))}
+              </Picker>
+              <Picker
+                selectedValue={familyProviderSelectedPeriods[insuredType]}
+                style={styles.picker}
+                onValueChange={(value) =>
+                  setFamilyProviderSelectedPeriods((prevPeriods) => ({
+                    ...prevPeriods,
+                    [insuredType]: value,
+                  }))
+                }
+              >
+                <Picker.Item label="Period" value="" />
+                {getPeriodOptions(
+                  monthlyProviderBenefitData,
+                  insuredType,
+                  familyProviderSelectedAgeBands[insuredType],
+                  familyProviderSelectedSumAssured[insuredType]
+                ).map((period) => (
+                  <Picker.Item key={period} label={period} value={period} />
+                ))}
+              </Picker>
+              {familyProviderSelectedPeriods[insuredType] && (
+                <Text style={styles.amountText}>
+                  {' = M'}
+                  {getAmount(
+                    monthlyProviderBenefitData,
+                    insuredType,
+                    familyProviderSelectedAgeBands[insuredType],
+                    `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
+                  ).toFixed(2)}
                 </Text>
-                {selectedMonthlyProviderInsuredTypes.includes(insuredType) && (
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={familyProviderSelectedAgeBands[insuredType]}
-                      style={styles.picker}
-                      onValueChange={(value) => {
-                        setFamilyProviderSelectedAgeBands((prevAgeBands) => ({
-                          ...prevAgeBands,
-                          [insuredType]: value,
-                        }));
-                        setFamilyProviderSelectedSumAssured((prevSumAssured) => ({
-                          ...prevSumAssured,
-                          [insuredType]: '',
-                        }));
-                        setFamilyProviderSelectedPeriods((prevPeriods) => ({
-                          ...prevPeriods,
-                          [insuredType]: '',
-                        }));
-                      }}
-                    >
-                      <Picker.Item label="Age Band" value="" />
-                      {getAgeBands(monthlyProviderBenefitData, insuredType).map((band) => (
-                        <Picker.Item key={band} label={band} value={band} />
-                      ))}
-                    </Picker>
-                    <Picker
-                      selectedValue={familyProviderSelectedSumAssured[insuredType]}
-                      style={styles.picker}
-                      onValueChange={(value) =>
-                        setFamilyProviderSelectedSumAssured((prevSumAssured) => ({
-                          ...prevSumAssured,
-                          [insuredType]: value,
-                        }))
-                      }
-                    >
-                      <Picker.Item label="Sum Assured" value="" />
-                      {getSumAssuredAmounts(
-                        monthlyProviderBenefitData,
-                        insuredType,
-                        familyProviderSelectedAgeBands[insuredType]
-                      ).map((amount) => (
-                        <Picker.Item key={amount} label={amount} value={amount} />
-                      ))}
-                    </Picker>
-                    {familyProviderSelectedSumAssured[insuredType] && (
-                      <Picker
-                        selectedValue={familyProviderSelectedPeriods[insuredType]}
-                        style={styles.picker}
-                        onValueChange={(value) =>
-                          setFamilyProviderSelectedPeriods((prevPeriods) => ({
-                            ...prevPeriods,
-                            [insuredType]: value,
-                          }))
-                        }
-                      >
-                        <Picker.Item label="Period" value="" />
-                        {getPeriodOptions(
-                          monthlyProviderBenefitData,
-                          insuredType,
-                          familyProviderSelectedAgeBands[insuredType],
-                          familyProviderSelectedSumAssured[insuredType]
-                        ).map((period) => (
-                          <Picker.Item key={period} label={period} value={period} />
-                        ))}
-                      </Picker>
-                    )}
-                    {familyProviderSelectedPeriods[insuredType] && (
-                      <Text style={styles.amountText}>
-                        {' = M'}
-                        {getAmount(
-                          monthlyProviderBenefitData,
-                          insuredType,
-                          familyProviderSelectedAgeBands[insuredType],
-                          `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
-                        ).toFixed(2)}
-                      </Text>
-                    )}
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>TOTAL MONTHLY PROVIDER BENEFIT PREMIUM</Text>
-            <Text style={styles.totalAmountText}>{' = M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
-          </View>
+              )}
+            </View>
+          )}
         </View>
-      )}
+      ))}
+    </View>
+    <View style={styles.row}>
+      <Text style={styles.label}>TOTAL MONTHLY PROVIDER BENEFIT PREMIUM</Text>
+      <Text style={styles.totalAmountText}>{' = M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
+    </View>
+  </View>
+)}
+
+
 
 <TouchableOpacity
   style={styles.button}
@@ -1265,12 +1257,16 @@ useEffect(() => {
               <Picker
                 selectedValue={deathIncomeSelectedSumAssured[insuredType]}
                 style={styles.picker}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
                   setDeathIncomeSelectedSumAssured((prevSumAssured) => ({
                     ...prevSumAssured,
                     [insuredType]: value,
-                  }))
-                }
+                  }));
+                  setDeathIncomeSelectedPeriods((prevPeriods) => ({
+                    ...prevPeriods,
+                    [insuredType]: '',
+                  }));
+                }}
               >
                 <Picker.Item label="Sum Assured" value="" />
                 {getSumAssuredAmounts(
@@ -1281,28 +1277,28 @@ useEffect(() => {
                   <Picker.Item key={amount} label={amount} value={amount} />
                 ))}
               </Picker>
-              {deathIncomeSelectedSumAssured[insuredType] && (
-                <Picker
-                  selectedValue={deathIncomeSelectedPeriods[insuredType]}
-                  style={styles.picker}
-                  onValueChange={(value) =>
-                    setDeathIncomeSelectedPeriods((prevPeriods) => ({
-                      ...prevPeriods,
-                      [insuredType]: value,
-                    }))
-                  }
-                >
-                  <Picker.Item label="Period" value="" />
-                  {getPeriodOptions(
-                    deathIncomeBenefitData,
-                    insuredType,
-                    deathIncomeSelectedAgeBands[insuredType],
-                    deathIncomeSelectedSumAssured[insuredType]
-                  ).map((period) => (
-                    <Picker.Item key={period} label={period} value={period} />
-                  ))}
-                </Picker>
-              )}
+              <Picker
+                selectedValue={deathIncomeSelectedPeriods[insuredType]}
+                style={styles.picker}
+                onValueChange={(value) =>
+                  setDeathIncomeSelectedPeriods((prevPeriods) => ({
+                    ...prevPeriods,
+                    [insuredType]: value,
+                  }))
+                }
+              >
+                <Picker.Item label="Period" value="" />
+                {deathIncomeSelectedSumAssured[insuredType]
+                  ? getPeriodOptions(
+                      deathIncomeBenefitData,
+                      insuredType,
+                      deathIncomeSelectedAgeBands[insuredType],
+                      deathIncomeSelectedSumAssured[insuredType]
+                    ).map((period) => (
+                      <Picker.Item key={period} label={period} value={period} />
+                    ))
+                  : null}
+              </Picker>
               {deathIncomeSelectedPeriods[insuredType] && (
                 <Text style={styles.amountText}>
                   {' = M'}
@@ -1325,6 +1321,8 @@ useEffect(() => {
     </View>
   </View>
 )}
+
+
 
 
 <TouchableOpacity
@@ -1469,7 +1467,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   button: {
-    backgroundColor: 'lightgrey',
+    backgroundColor: 'cornflowerblue',
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1483,7 +1481,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonReset: {
-    backgroundColor: 'lightgrey',
+    backgroundColor: 'orange',
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1501,15 +1499,15 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center', // Align items vertically center within the row
-    justifyContent: 'flex-start', // Align items to the left of the row
+    alignItems: 'center', 
+    justifyContent: 'flex-start', 
     marginBottom: 16,
     width: '100%',
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'black',
+    color: 'purple',
     marginBottom: 10,
   },
   amountText: {
@@ -1519,7 +1517,7 @@ const styles = StyleSheet.create({
   },
   totalAmountText: {
     fontSize: 16,
-    color: 'black',
+    color: 'purple',
     fontWeight: 'bold',
     marginLeft: 10,
   },
@@ -1529,6 +1527,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   radioLabel: {
+    color: 'purple',
     marginLeft: 10,
     fontSize: 16,
   },
@@ -1538,12 +1537,3 @@ const styles = StyleSheet.create({
 export default App;
 
 
-/*import React from 'react';
-import AppNavigator from './navigation';
-
-const App = () => {
-  return <AppNavigator />;
-};
-
-export default App;
-*/
