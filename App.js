@@ -922,9 +922,9 @@ useEffect(() => {
                     }));
                   }}
                 >
-                  <Picker.Item label="Age Band" value="" />
+                  <Picker.Item label="Age Band" value="" color="purple"/>
                   {getAgeBands(funeralBenefitData, insuredType).map((band) => (
-                    <Picker.Item key={band} label={band} value={band} />
+                    <Picker.Item key={band} label={band} value={band} color="purple"/>
                   ))}
                 </Picker>
                 <Picker
@@ -937,9 +937,9 @@ useEffect(() => {
                     }))
                   }
                 >
-                  <Picker.Item label="Sum Assured" value="" />
+                  <Picker.Item label="Sum Assured" value="" color="purple"/>
                   {getSumAssuredOptions(funeralBenefitData, insuredType, selectedFuneralAgeBands[insuredType]).map((sum) => (
-                    <Picker.Item key={sum} label={sum} value={sum} />
+                    <Picker.Item key={sum} label={sum} value={sum} color="purple"/>
                   ))}
                 </Picker>
                 {selectedFuneralSumAssured[insuredType] && (
@@ -997,9 +997,9 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Age Band" value="" />
+                <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(tombstoneBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} />
+                  <Picker.Item key={band} label={band} value={band} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1012,9 +1012,9 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Sum Assured" value="" />
+                <Picker.Item label="Sum Assured" value="" color="purple"/>
                 {getSumAssuredOptions(tombstoneBenefitData, insuredType, selectedTombstoneAgeBands[insuredType]).map((sum) => (
-                  <Picker.Item key={sum} label={sum} value={sum} />
+                  <Picker.Item key={sum} label={sum} value={sum} color="purple"/>
                 ))}
               </Picker>
               {selectedTombstoneSumAssured[insuredType] && (
@@ -1072,9 +1072,9 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Age Band" value="" />
+                <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(cowBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} />
+                  <Picker.Item key={band} label={band} value={band} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1087,9 +1087,9 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Sum Assured" value="" />
+                <Picker.Item label="Sum Assured" value="" color="purple"/>
                 {getSumAssuredOptions(cowBenefitData, insuredType, selectedCowAgeBands[insuredType]).map((sum) => (
-                  <Picker.Item key={sum} label={sum} value={sum} />
+                  <Picker.Item key={sum} label={sum} value={sum} color="purple"/>
                 ))}
               </Picker>
               {selectedCowSumAssured[insuredType] && (
@@ -1145,9 +1145,9 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Age Band" value="" />
+                <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(monthlyProviderBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} />
+                  <Picker.Item key={band} label={band} value={band} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1160,13 +1160,13 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Sum Assured" value="" />
+                <Picker.Item label="Sum Assured" value="" color="purple"/>
                 {getSumAssuredAmounts(
                   monthlyProviderBenefitData,
                   insuredType,
                   familyProviderSelectedAgeBands[insuredType]
                 ).map((amount) => (
-                  <Picker.Item key={amount} label={amount} value={amount} />
+                  <Picker.Item key={amount} label={amount} value={amount} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1179,14 +1179,14 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Period" value="" />
+                <Picker.Item label="Period" value="" color="purple"/>
                 {getPeriodOptions(
                   monthlyProviderBenefitData,
                   insuredType,
                   familyProviderSelectedAgeBands[insuredType],
                   familyProviderSelectedSumAssured[insuredType]
                 ).map((period) => (
-                  <Picker.Item key={period} label={period} value={period} />
+                  <Picker.Item key={period} label={period} value={period} color="purple"/>
                 ))}
               </Picker>
             </View>
@@ -1245,9 +1245,9 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Age Band" value="" />
+                <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(deathIncomeBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} />
+                  <Picker.Item key={band} label={band} value={band} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1264,13 +1264,13 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Sum Assured" value="" />
+                <Picker.Item label="Sum Assured" value="" color="purple"/>
                 {getSumAssuredAmounts(
                   deathIncomeBenefitData,
                   insuredType,
                   deathIncomeSelectedAgeBands[insuredType]
                 ).map((amount) => (
-                  <Picker.Item key={amount} label={amount} value={amount} />
+                  <Picker.Item key={amount} label={amount} value={amount} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1283,7 +1283,7 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Period" value="" />
+                <Picker.Item label="Period" value="" color="purple"/>
                 {deathIncomeSelectedSumAssured[insuredType]
                   ? getPeriodOptions(
                       deathIncomeBenefitData,
@@ -1291,7 +1291,7 @@ useEffect(() => {
                       deathIncomeSelectedAgeBands[insuredType],
                       deathIncomeSelectedSumAssured[insuredType]
                     ).map((period) => (
-                      <Picker.Item key={period} label={period} value={period} />
+                      <Picker.Item key={period} label={period} value={period} color="purple"/>
                     ))
                   : null}
               </Picker>
@@ -1347,9 +1347,9 @@ useEffect(() => {
                   }));
                 }}
               >
-                <Picker.Item label="Age Band" value="" />
+                <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(lifeCoverBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} />
+                  <Picker.Item key={band} label={band} value={band} color="purple"/>
                 ))}
               </Picker>
               <Picker
@@ -1362,13 +1362,13 @@ useEffect(() => {
                   }))
                 }
               >
-                <Picker.Item label="Sum Assured" value="" />
+                <Picker.Item label="Sum Assured" value="" color="purple"/>
                 {getSumAssuredOptions(
                   lifeCoverBenefitData,
                   insuredType,
                   selectedAgeBands[insuredType]
                 ).map((sum) => (
-                  <Picker.Item key={sum} label={sum} value={sum} />
+                  <Picker.Item key={sum} label={sum} value={sum} color="purple"/>
                 ))}
               </Picker>
             </View>
@@ -1411,7 +1411,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     width: '100%', 
-    alignItems: 'center', // Center the logo horizontally
+    alignItems: 'center', 
     marginTop: 20,
     marginBottom: 5,
   },
@@ -1428,6 +1428,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center', // Ensure the text is centered
   },
+  
   pickerContainer: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -1438,7 +1439,12 @@ const styles = StyleSheet.create({
     width: '50%', // Adjust width as needed
     height: 40, // Adjust height as needed
     marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: 'cornflowerblue', // Add border color
+    borderRadius: 5, // Optional: Add border radius for rounded corners
+    padding: 5, // Add padding to make the border more visible
   },
+  
   button: {
     backgroundColor: 'cornflowerblue',
     padding: 10,
@@ -1485,7 +1491,7 @@ const styles = StyleSheet.create({
   },
   amountText: {
     fontSize: 16,
-    color: 'black',
+    color: 'purple',
     marginLeft: 10,
   },
   totalAmountText: {
