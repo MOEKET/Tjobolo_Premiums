@@ -762,19 +762,23 @@ const handleMonthlyProviderRadioButtonPress = (insuredType) => {
       : [...prevTypes, insuredType];
 
     if (!newTypes.includes(insuredType)) {
-      setFamilyProviderSelectedAgeBands((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
-      setFamilyProviderSelectedSumAssured((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
-      setFamilyProviderSelectedPeriods((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
+      // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+      return newTypes;
     }
+
+    // If adding insuredType, only update the state if it's a new selection
+    setFamilyProviderSelectedAgeBands((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
+    setFamilyProviderSelectedSumAssured((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
+    setFamilyProviderSelectedPeriods((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
 
     return newTypes;
   });
@@ -787,24 +791,27 @@ const handleDeathIncomeRadioButtonPress = (insuredType) => {
       : [...prevTypes, insuredType];
 
     if (!newTypes.includes(insuredType)) {
-      setDeathIncomeSelectedAgeBands((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
-      setDeathIncomeSelectedSumAssured((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
-      setDeathIncomeSelectedPeriods((prev) => ({
-        ...prev,
-        [insuredType]: '',
-      }));
+      // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+      return newTypes;
     }
+
+    // If adding insuredType, only update the state if it's a new selection
+    setDeathIncomeSelectedAgeBands((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
+    setDeathIncomeSelectedSumAssured((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
+    setDeathIncomeSelectedPeriods((prev) => ({
+      ...prev,
+      [insuredType]: prev[insuredType] || '',
+    }));
 
     return newTypes;
   });
 };
-
 
 const handleLifeRadioButtonPress = (insuredType) => {
   setSelectedLifeCoverInsuredTypes((prevSelected) => {
@@ -1182,24 +1189,13 @@ useEffect(() => {
                   <Picker.Item key={period} label={period} value={period} />
                 ))}
               </Picker>
-              {familyProviderSelectedPeriods[insuredType] && (
-                <Text style={styles.amountText}>
-                  {' = M'}
-                  {getAmount(
-                    monthlyProviderBenefitData,
-                    insuredType,
-                    familyProviderSelectedAgeBands[insuredType],
-                    `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
-                  ).toFixed(2)}
-                </Text>
-              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>TOTAL MONTHLY PROVIDER BENEFIT PREMIUM</Text>
+      <Text style={styles.label}>MONTHLY PROVIDER BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
     </View>
   </View>
@@ -1299,29 +1295,17 @@ useEffect(() => {
                     ))
                   : null}
               </Picker>
-              {deathIncomeSelectedPeriods[insuredType] && (
-                <Text style={styles.amountText}>
-                  {' = M'}
-                  {getAmount(
-                    deathIncomeBenefitData,
-                    insuredType,
-                    deathIncomeSelectedAgeBands[insuredType],
-                    `${deathIncomeSelectedSumAssured[insuredType]}x${deathIncomeSelectedPeriods[insuredType]}`
-                  ).toFixed(2)}
-                </Text>
-              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>TOTAL DEATH INCOME BENEFIT PREMIUM</Text>
+      <Text style={styles.label}>DEATH INCOME BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalDeathIncomePremium.toFixed(2)}</Text>
     </View>
   </View>
 )}
-
 
 
 
@@ -1387,24 +1371,13 @@ useEffect(() => {
                   <Picker.Item key={sum} label={sum} value={sum} />
                 ))}
               </Picker>
-              {selectedSumAssured[insuredType] && (
-                <Text style={styles.amountText}>
-                  {' = M'}
-                  {getAmount(
-                    lifeCoverBenefitData,
-                    insuredType,
-                    selectedAgeBands[insuredType],
-                    selectedSumAssured[insuredType]
-                  ).toFixed(2)}
-                </Text>
-              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>TOTAL LIFE COVER BENEFIT PREMIUM</Text>
+      <Text style={styles.label}>LIFE COVER BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalLifeCoverPremium.toFixed(2)}</Text>
     </View>
   </View>
