@@ -953,7 +953,7 @@ useEffect(() => {
           </View>
         ))}
       </View>
-      <View style={styles.row}>
+      <View style={styles.fixedAmountSection}>
         <Text style={styles.label}>TOTAL FUNERAL BENEFIT PREMIUM</Text>
         <Text style={styles.totalAmountText}>{' = M'}{totalFuneralPremium.toFixed(2)}</Text>
       </View>
@@ -1028,7 +1028,7 @@ useEffect(() => {
         </View>
       ))}
     </View>
-    <View style={styles.row}>
+    <View style={styles.fixedAmountSection}>
       <Text style={styles.label}>TOTAL TOMBSTONE BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalTombstonePremium.toFixed(2)}</Text>
     </View>
@@ -1103,7 +1103,7 @@ useEffect(() => {
         </View>
       ))}
     </View>
-    <View style={styles.row}>
+    <View style={styles.fixedAmountSection}>
       <Text style={styles.label}>TOTAL COW BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalCowPremium.toFixed(2)}</Text>
     </View>
@@ -1194,7 +1194,7 @@ useEffect(() => {
         </View>
       ))}
     </View>
-    <View style={styles.row}>
+    <View style={styles.fixedAmountSection}>
       <Text style={styles.label}>MONTHLY PROVIDER BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
     </View>
@@ -1300,7 +1300,7 @@ useEffect(() => {
         </View>
       ))}
     </View>
-    <View style={styles.row}>
+    <View style={styles.fixedAmountSection}>
       <Text style={styles.label}>DEATH INCOME BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalDeathIncomePremium.toFixed(2)}</Text>
     </View>
@@ -1376,7 +1376,7 @@ useEffect(() => {
         </View>
       ))}
     </View>
-    <View style={styles.row}>
+    <View style={styles.fixedAmountSection}>
       <Text style={styles.label}>LIFE COVER BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalLifeCoverPremium.toFixed(2)}</Text>
     </View>
@@ -1403,6 +1403,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: 'white',
     padding: 20,
+    
   },
   wrapper: {
     width: '100%',
@@ -1436,13 +1437,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   picker: {
-    width: '50%', // Adjust width as needed
-    height: 40, // Adjust height as needed
+    width: '50%', 
+    height: 40, 
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: 'cornflowerblue', // Add border color
-    borderRadius: 5, // Optional: Add border radius for rounded corners
-    padding: 5, // Add padding to make the border more visible
+    borderColor: 'cornflowerblue', 
+    borderRadius: 5, 
+    padding: 5, 
   },
   
   button: {
@@ -1483,11 +1484,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '100%',
   },
+  fixedAmountSection: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 10, 
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   label: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: 'bold',
     color: 'purple',
-    marginBottom: 10,
+   
   },
   amountText: {
     fontSize: 16,
@@ -1498,7 +1508,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'purple',
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 4,
   },
   radioContainer: {
     flexDirection: 'row',
