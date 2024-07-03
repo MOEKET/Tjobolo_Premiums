@@ -4,7 +4,7 @@
     "slug": "Tjobolo_Premiums",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Tjobolo-logo.png",
+    "icon": "./assets/Mekorotlo-01.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/favicon.png",
@@ -16,12 +16,18 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Tjobolo-logo.png",
+        "foregroundImage": "./assets/Mekorotlo-01.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.max_ramajoe.Tjobolo_Premiums"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Mekorotlo-01.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3407c797-5c38-403e-9505-42befe3d6bff"
+      }
     }
   }
 }
