@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { RadioButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -21,7 +21,7 @@ const App = () => {
     parents: '',
     extendedFamilyMembers: '',
   });
-  const [selectedSumAssured, setSelectedSumAssured] = useState({});
+  const [lifeSelectedSumAssured, setSelectedSumAssured] = useState({});
   const [selectedFuneralInsuredTypes, setSelectedFuneralInsuredTypes] = useState([]);
   const [selectedTombstoneInsuredTypes, setSelectedTombstoneInsuredTypes] = useState([]);
   const [selectedMonthlyProviderInsuredTypes, setSelectedMonthlyProviderInsuredTypes] = useState([]);
@@ -29,7 +29,6 @@ const App = () => {
   const [selectedLifeCoverTypes, setSelectedLifeCoverInsuredTypes] = useState([]);
   const [selectedDeathIncomeTypes, setSelectedDeathIncomeTypes] = useState([]);
   
-
   const [selectedFuneralAgeBands, setSelectedFuneralAgeBands] = useState({});
   const [selectedFuneralSumAssured, setSelectedFuneralSumAssured] = useState({});
   const [selectedTombstoneAgeBands, setSelectedTombstoneAgeBands] = useState({});
@@ -45,19 +44,31 @@ const App = () => {
   const [deathIncomeSelectedSumAssured, setDeathIncomeSelectedSumAssured] = useState({});
   const [deathIncomeSelectedPeriods, setDeathIncomeSelectedPeriods] = useState({});
 
-  
   const [totalPremium, setTotalPremium] = useState(0);
   const [totalFuneralPremium, setTotalFuneralPremium] = useState(0);
   const [totalTombstonePremium, setTotalTombstonePremium] = useState(0);
   const [totalCowPremium, setTotalCowPremium] = useState(0);
 
   const [totalSumAssured, setTotalSumAssured] = useState(0);
+  const [totalSumAssuredTwo, setTotalSumAssuredTwo] = useState(0);
+  const [totalSumAssuredThree, setTotalSumAssuredThree] = useState(0);
+
+  const [totalSumAssuredMainLife, setTotalSumAssuredMainLife] = useState(0);
+const [totalSumAssuredPartner, setTotalSumAssuredPartner] = useState(0);
+
+
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessageTwo, setErrorMessageTwo] = useState('');
+  const [errorMessageThree, setErrorMessageThree] = useState('');
+  const [hadError, setHadError] = useState(false);
+
   const [additionalChildrenCount, setAdditionalChildrenCount] = useState(0);
   const [parentsCount, setParentsCount] = useState(0);
 
   const [extendedFamilyChildrenCount, setExtendedFamilyChildrenCount] = useState(0);
   const [extendedFamilyMembersCount, setExtendedFamilyMembersCount] = useState(0);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   useEffect(() => {
     calculateTotalFuneralPremium();
@@ -99,6 +110,33 @@ const App = () => {
     setExtendedFamilyMembersCount(0);
     setTotalPremium(0);
   };
+
+  const resetLifeDeathSelections = () => {
+    setDeathIncomeSelectedSumAssured({});
+    setDeathIncomeSelectedPeriods({});
+    setSelectedDeathIncomeTypes([]);
+    setSelectedLifeCoverInsuredTypes([]);
+    setSelectedSumAssured([]);
+  };
+
+  useEffect(() => {
+    if (
+      !(
+        selectedFuneralInsuredTypes.includes('mainLifeInsured') &&
+        selectedFuneralSumAssured['mainLifeInsured'] === '50000'
+      )
+    ) {
+      resetLifeDeathSelections();
+    }
+  }, [selectedFuneralInsuredTypes, selectedFuneralSumAssured]);
+
+
+  const canAddMore = (insuredType, count, maxCount) => {
+    const ageBand = selectedAgeBands[insuredType];
+    const sumAssured = selectedFuneralSumAssured[insuredType];
+    return selectedFuneralInsuredTypes.includes(insuredType) && ageBand && sumAssured && count < maxCount;
+  };
+
   const funeralBenefitData = {
     mainLifeInsured: {
       '18-45': {
@@ -269,12 +307,6 @@ const App = () => {
           '25000': 583.75
       }
     }
-  };
-
-  const canAddMore = (insuredType, count, maxCount) => {
-    const ageBand = selectedAgeBands[insuredType];
-    const sumAssured = selectedFuneralSumAssured[insuredType];
-    return selectedFuneralInsuredTypes.includes(insuredType) && ageBand && sumAssured && count < maxCount;
   };
   
   const tombstoneBenefitData = {
@@ -867,7 +899,6 @@ const App = () => {
     }
   };
   
-
 const lifeCoverBenefitData = {
   mainLifeInsured: {
       '18-45': {
@@ -1115,7 +1146,6 @@ const insuredTypeLongNames = {
   extendedFamilyMembers: 'Extended Family Member',
 };
 
-
 const getAgeBands = (data, insuredType) => {
   if (insuredType) {
     return Object.keys(data[insuredType]);
@@ -1137,7 +1167,6 @@ const getSumAssuredAmounts = (data, insuredType, ageBand) => {
     .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
 };
 
-
 const getAmount = (data, type, ageBand, sumAssured) => {
   if (!data || !type || !ageBand || !sumAssured) {
     return 0;
@@ -1150,7 +1179,6 @@ const getAmount = (data, type, ageBand, sumAssured) => {
 
   return insuredData[ageBand][sumAssured];
 };
-
 
 const handleSumAssuredChange = (benefitType, insuredType, value) => {
   if (benefitType === 'funeral') {
@@ -1207,11 +1235,10 @@ const getPeriodOptions = (data, insuredType, ageBand, sumAssured) => {
     .map((key) => key.split('x')[1]);
 };
 
-
 const calculateTotalPremium = (data, selectedInsuredTypes) => {
   return selectedInsuredTypes.reduce((total, insuredType) => {
     const ageBand = selectedAgeBands[insuredType];
-    const sumAssured = selectedSumAssured[insuredType];
+    const sumAssured = lifeSelectedSumAssured[insuredType];
     const amount = getAmount(data, insuredType, ageBand, sumAssured);
     return total + (amount ? parseFloat(amount) : 0);
   }, 0);
@@ -1267,7 +1294,6 @@ const calculateTotalFuneralPremium = () => {
   setTotalFuneralPremium(totalPremium);
 };
 
-// Use the function in a useEffect hook to calculate the total whenever relevant states change
 useEffect(() => {
   calculateTotalFuneralPremium();
 }, [
@@ -1278,8 +1304,6 @@ useEffect(() => {
   extendedFamilyChildrenCount,
   extendedFamilyMembersCount,
 ]);
-
-
 
 
 const calculateTotalTombstonePremium = () => {
@@ -1327,7 +1351,6 @@ useEffect(() => {
 ]);
 
 
-
 const calculateTotalCowPremium = () => {
   let totalPremium = 0;
 
@@ -1371,9 +1394,6 @@ useEffect(() => {
   parentsCount,
   extendedFamilyMembersCount,
 ]);
-
-
-
 
 const handleMonthlyProviderRadioButtonPress = (insuredType) => {
   setSelectedMonthlyProviderInsuredTypes((prevTypes) => {
@@ -1443,8 +1463,6 @@ const handleLifeCoverRadioButtonPress = (insuredType) => {
   });
 };
 
-
-// Function to handle age band selection
 const handleAgeBandChange = (benefitType, insuredType, value) => {
   setSelectedAgeBands((prevAgeBands) => ({
     ...prevAgeBands,
@@ -1493,6 +1511,10 @@ const handleAgeBandChange = (benefitType, insuredType, value) => {
 
 const handleRadioButtonPress = (benefitType, insuredType) => {
   if (benefitType === 'funeral') {
+    if (insuredType === 'children' || insuredType === 'additionalChildren' || insuredType === 'extendedFamilyChildren') {
+      // Automatically set the age band for children-related insured types
+      handleAgeBandChange('funeral', insuredType, '0-20/24');
+    }
     setSelectedFuneralInsuredTypes((prevSelected) => 
       prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
     );
@@ -1504,7 +1526,7 @@ const handleRadioButtonPress = (benefitType, insuredType) => {
     setSelectedCowInsuredTypes((prevSelected) => 
       prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
     );
-  }else if (benefitType === 'familyProvider') {
+  } else if (benefitType === 'familyProvider') {
     setSelectedMonthlyProviderInsuredTypes((prevTypes) =>
       prevTypes.includes(insuredType)
         ? prevTypes.filter((type) => type !== insuredType)
@@ -1541,7 +1563,6 @@ const totalDeathIncomePremium = selectedDeathIncomeTypes.reduce((total, insuredT
 }, 0);
 
 
-
 const totalFamilyProviderPremium = selectedMonthlyProviderInsuredTypes.reduce((total, insuredType) => {
   const ageBand = selectedAgeBands[insuredType];
   const sumAssured = familyProviderSelectedSumAssured[insuredType];
@@ -1559,21 +1580,120 @@ const totalFamilyProviderPremium = selectedMonthlyProviderInsuredTypes.reduce((t
 const totalLifeCoverPremium = calculateTotalPremium(lifeCoverBenefitData, selectedLifeCoverTypes);
 
 useEffect(() => {
-  // Calculate the total premium whenever any of the relevant state variables change
-  const total = (
-    totalFuneralPremium +
-    totalTombstonePremium +
-    totalCowPremium +
-    totalFamilyProviderPremium +
-    totalDeathIncomePremium +
-    totalLifeCoverPremium
-  );
-  
-  // Update the total premium state
+  let total = totalFuneralPremium + totalTombstonePremium + totalCowPremium + totalFamilyProviderPremium;
+
+  if (selectedFuneralInsuredTypes.includes('mainLifeInsured') &&
+    selectedFuneralSumAssured['mainLifeInsured'] === '50000') {
+    total += totalDeathIncomePremium + totalLifeCoverPremium;
+  }
+
   setTotalPremium(total);
-}, [totalFuneralPremium, totalTombstonePremium, totalCowPremium, totalDeathIncomePremium, totalFamilyProviderPremium, totalLifeCoverPremium]);
+}, [totalFuneralPremium, totalTombstonePremium, totalCowPremium, totalDeathIncomePremium, totalFamilyProviderPremium, totalLifeCoverPremium, selectedFuneralInsuredTypes, selectedFuneralSumAssured]);
+
 
 const calculateTotalSumAssured = () => {
+  let totalMainLife = 0;
+  let totalPartner = 0;
+
+  // Calculate totals for mainLifeInsured
+  if (selectedFuneralSumAssured['mainLifeInsured']) totalMainLife += parseFloat(selectedFuneralSumAssured['mainLifeInsured'] || 0);
+  if (selectedTombstoneSumAssured['mainLifeInsured']) totalMainLife += parseFloat(selectedTombstoneSumAssured['mainLifeInsured'] || 0);
+  if (selectedCowSumAssured['mainLifeInsured']) totalMainLife += parseFloat(selectedCowSumAssured['mainLifeInsured'] || 0);
+  if (familyProviderSelectedSumAssured['mainLifeInsured']) {
+    const sumAssured = parseFloat(familyProviderSelectedSumAssured['mainLifeInsured'] || 0);
+    const period = parseFloat(familyProviderSelectedPeriods['mainLifeInsured'] || 0);
+    totalMainLife += sumAssured * period;
+  }
+
+  // Calculate totals for partner
+  if (selectedFuneralSumAssured['partner']) totalPartner += parseFloat(selectedFuneralSumAssured['partner'] || 0);
+  if (selectedTombstoneSumAssured['partner']) totalPartner += parseFloat(selectedTombstoneSumAssured['partner'] || 0);
+  if (selectedCowSumAssured['partner']) totalPartner += parseFloat(selectedCowSumAssured['partner'] || 0);
+  if (familyProviderSelectedSumAssured['partner']) {
+    const sumAssured = parseFloat(familyProviderSelectedSumAssured['partner'] || 0);
+    const period = parseFloat(familyProviderSelectedPeriods['partner'] || 0);
+    totalPartner += sumAssured * period;
+  }
+
+  // Set the total sum assured for mainLife and partner
+  setTotalSumAssuredMainLife(totalMainLife);
+  setTotalSumAssuredPartner(totalPartner);
+
+  // Error handling
+  const errors = [];
+  const successes = [];
+
+  if (totalMainLife > 75000) {
+    errors.push('Main Life Insured total cover should not exceed M75000.');
+  }
+  if (totalPartner > 75000) {
+    errors.push('Partner total cover should not exceed M75000.');
+  }
+
+  if (errors.length > 0) {
+    setErrorMessage(errors);
+    setSuccessMessage([]);
+    setHadError(true);
+    setModalVisible(true);
+  } else {
+    if (hadError) {
+      successes.push('Cover limit successfully resolved');
+      setModalVisible(true);
+    }
+    setErrorMessage([]);
+    setSuccessMessage(successes);
+    setHadError(false);
+  }
+
+  setTotalSumAssured(totalMainLife + totalPartner);
+};
+
+
+// Ensure to call calculateTotalSumAssured in useEffect
+useEffect(() => {
+  calculateTotalSumAssured();
+}, [selectedFuneralSumAssured, selectedTombstoneSumAssured, selectedCowSumAssured, familyProviderSelectedSumAssured, familyProviderSelectedPeriods]);
+
+
+
+const calculateTotalSumAssuredTwo = () => {
+  let total = 0;
+
+  Object.keys(lifeSelectedSumAssured).forEach((key) => {
+    total += parseFloat(lifeSelectedSumAssured[key] || 0);
+  });
+
+  Object.keys(deathIncomeSelectedSumAssured).forEach((insuredType) => {
+    const sumAssured = parseFloat(deathIncomeSelectedSumAssured[insuredType] || 0);
+    const period = parseFloat(deathIncomeSelectedPeriods[insuredType] || 0);
+    total += sumAssured * period;
+  });
+
+  if (total > 200000) {
+    setErrorMessageTwo('The total cover for life and death benefit should not exceed M200000.');
+    setSuccessMessage('');
+    setModalVisible(true);
+  } else {
+    if (errorMessageTwo) {
+      setSuccessMessage('Cover limit successfully resolved');
+      setModalVisible(true);
+    }
+    setErrorMessageTwo('');
+  }
+  
+  setTotalSumAssuredTwo(total);
+};
+
+
+useEffect(() => {
+  calculateTotalSumAssuredTwo();
+}, [deathIncomeSelectedSumAssured, lifeSelectedSumAssured]);
+useEffect(() => {
+  calculateTotalSumAssuredTwo();
+}, [deathIncomeSelectedPeriods, deathIncomeSelectedSumAssured]);
+
+
+const calculateTotalSumAssuredThree = () => {
   let total = 0;
 
   Object.keys(selectedFuneralSumAssured).forEach((key) => {
@@ -1585,25 +1705,51 @@ const calculateTotalSumAssured = () => {
   Object.keys(selectedCowSumAssured).forEach((key) => {
     total += parseFloat(selectedCowSumAssured[key] || 0);
   });
-  Object.keys(familyProviderSelectedSumAssured).forEach((key) => {
-    total += parseFloat(familyProviderSelectedSumAssured[key] || 0);
+  Object.keys(familyProviderSelectedSumAssured).forEach((insuredType) => {
+    const sumAssured = parseFloat(familyProviderSelectedSumAssured[insuredType] || 0);
+    const period = parseFloat(familyProviderSelectedPeriods[insuredType] || 0);
+    total += sumAssured * period;
+  });
+  Object.keys(lifeSelectedSumAssured).forEach((key) => {
+    total += parseFloat(lifeSelectedSumAssured[key] || 0);
+  });
+  Object.keys(deathIncomeSelectedSumAssured).forEach((insuredType) => {
+    const sumAssured = parseFloat(deathIncomeSelectedSumAssured[insuredType] || 0);
+    const period = parseFloat(deathIncomeSelectedPeriods[insuredType] || 0);
+    total += sumAssured * period;
   });
 
-  if (total > 75000) {
-    setErrorMessage('The total sum assured exceeds M75000.');
+  if (total > 250000) {
+    setErrorMessageThree('The total policy cover should not exceed M250000.');
+    setSuccessMessage('');
+    setModalVisible(true);
   } else {
-    setErrorMessage('');
+    if (errorMessageThree) {
+      setSuccessMessage('Sum assured limit successfully resolved');
+      setModalVisible(true);
+    }
+    setErrorMessageThree('');
   }
   
-  setTotalSumAssured(total);
+  setTotalSumAssuredThree(total);
 };
-
 useEffect(() => {
-  calculateTotalSumAssured();
-}, [selectedFuneralSumAssured, selectedTombstoneSumAssured, selectedCowSumAssured, familyProviderSelectedSumAssured]);
+  calculateTotalSumAssuredThree();
+}, [selectedFuneralSumAssured, selectedTombstoneSumAssured, selectedCowSumAssured, familyProviderSelectedSumAssured, familyProviderSelectedPeriods, lifeSelectedSumAssured, deathIncomeSelectedSumAssured, deathIncomeSelectedPeriods]);
+
+
+
 
 const getButtonStyle = () => {
-  return totalSumAssured > 75000 ? [styles.button, styles.buttonError] : styles.button;
+  const mainLifeCondition = totalSumAssuredMainLife > 75000 && totalSumAssuredMainLife < 200000;
+  const partnerCondition = totalSumAssuredPartner > 75000 && totalSumAssuredPartner < 200000;
+
+  return (mainLifeCondition || partnerCondition) ? [styles.button, styles.buttonError] : styles.button;
+};
+
+
+const getButtonStyleTwo = () => {
+  return totalSumAssuredTwo > 200000 ? [styles.button, styles.buttonError] : styles.button;
 };
 
 
@@ -1617,11 +1763,13 @@ const getButtonStyle = () => {
       <View style={styles.wrapper}>
  
       <TouchableOpacity
-  style={styles.button}
+  style={getButtonStyle()}
   onPress={() => setShowFuneralBenefitPicker(!showFuneralBenefitPicker)}
 >
   <Text style={styles.buttonText}>Funeral Benefit</Text>
-  <Text style={styles.totalAmountTextButton}>{'M'}{totalFuneralPremium.toFixed(2)}</Text>
+  { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalFuneralPremium.toFixed(2)}</Text>)}
   <Icon
     name="arrow-drop-down"
     size={20}
@@ -1633,116 +1781,129 @@ const getButtonStyle = () => {
 {showFuneralBenefitPicker && (
   <View style={styles.container}>
     <View style={styles.column}>
-      {Object.keys(funeralBenefitData).map((insuredType) => (
-        <View
-          key={insuredType}
-          style={insuredType === 'additionalChildren' || insuredType === 'parents' || insuredType === 'extendedFamilyChildren' || insuredType === 'extendedFamilyMembers' ? styles.radioContainerColumn : styles.radioContainer}
-        >
-          <RadioButton
-            value={insuredType}
-            status={selectedFuneralInsuredTypes.includes(insuredType) ? 'checked' : 'unchecked'}
-            onPress={() => handleRadioButtonPress('funeral', insuredType)}
-          />
-          <Text style={styles.radioLabel}>
-            {selectedFuneralInsuredTypes.includes(insuredType)
-              ? insuredTypeShortNames[insuredType]
-              : insuredTypeLongNames[insuredType]}
-          </Text>
-          {selectedFuneralInsuredTypes.includes(insuredType) && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedAgeBands[insuredType]}
-                style={styles.picker}
-                onValueChange={(value) => handleAgeBandChange('funeral', insuredType, value)}
-              >
-                <Picker.Item label="Age Band" value="" color="purple" />
-                {getAgeBands(funeralBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} color="purple" />
-                ))}
-              </Picker>
-              <Picker
-                selectedValue={selectedFuneralSumAssured[insuredType]}
-                style={styles.picker}
-                onValueChange={(value) => handleSumAssuredChange('funeral', insuredType, value)}
-              >
-                <Picker.Item label="Sum Assured" value="" color="purple" />
-                {getSumAssuredOptions(funeralBenefitData, insuredType, selectedAgeBands[insuredType]).map((sum) => (
-                  <Picker.Item key={sum} label={sum} value={sum} color="purple" />
-                ))}
-              </Picker>
-              {selectedFuneralSumAssured[insuredType] && (
-                parseFloat(selectedFuneralSumAssured[insuredType]) <= parseFloat(selectedFuneralSumAssured['mainLifeInsured']) ? (
-                  <Text style={styles.amountText}>
-                    {' = M'}
-                    {getAmount(funeralBenefitData, insuredType, selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2)}
-                  </Text>
-                ) : (
-                  <View style={styles.errorTextContainer}>
-                    <Text style={styles.errorText}>{insuredTypeLongNames[insuredType]} cover cannot exceed</Text>
-                    <Text style={styles.errorText}>Main Life cover</Text>
-                  </View>
-                )
-              )}
-            </View>
+  {Object.keys(funeralBenefitData).map((insuredType) => (
+    <View
+      key={insuredType}
+      style={
+        insuredType === 'additionalChildren' ||
+        insuredType === 'parents' ||
+        insuredType === 'extendedFamilyChildren' ||
+        insuredType === 'extendedFamilyMembers'
+          ? styles.radioContainerColumn
+          : styles.radioContainer
+      }
+    >
+      <RadioButton
+        value={insuredType}
+        status={selectedFuneralInsuredTypes.includes(insuredType) ? 'checked' : 'unchecked'}
+        onPress={() => handleRadioButtonPress('funeral', insuredType)}
+      />
+      <Text style={styles.radioLabel}>
+        {selectedFuneralInsuredTypes.includes(insuredType)
+          ? insuredTypeShortNames[insuredType]
+          : insuredTypeLongNames[insuredType]}
+      </Text>
+      {selectedFuneralInsuredTypes.includes(insuredType) && (
+        <View style={styles.pickerContainer}>
+          {(insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren') && (
+            <Picker
+              selectedValue={selectedAgeBands[insuredType]}
+              style={styles.picker}
+              onValueChange={(value) => handleAgeBandChange('funeral', insuredType, value)}
+            >
+              <Picker.Item label="Age Band" value="" color="purple" />
+              {getAgeBands(funeralBenefitData, insuredType).map((band) => (
+                <Picker.Item key={band} label={band} value={band} color="purple" />
+              ))}
+            </Picker>
+          )}
+          <Picker
+            selectedValue={selectedFuneralSumAssured[insuredType]}
+            style={styles.picker}
+            onValueChange={(value) => handleSumAssuredChange('funeral', insuredType, value)}
+          >
+            <Picker.Item label="Sum Assured" value="" color="purple" />
+            {getSumAssuredOptions(funeralBenefitData, insuredType, selectedAgeBands[insuredType]).map((sum) => (
+              <Picker.Item key={sum} label={sum} value={sum} color="purple" />
+            ))}
+          </Picker>
+          {selectedFuneralSumAssured[insuredType] && (
+            parseFloat(selectedFuneralSumAssured[insuredType]) <= parseFloat(selectedFuneralSumAssured['mainLifeInsured']) ? (
+              <Text style={styles.amountText}>
+                {' = M'}
+                {getAmount(funeralBenefitData, insuredType, selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2)}
+              </Text>
+            ) : (
+              <View style={styles.errorTextContainer}>
+                <Text style={styles.errorText}>{insuredTypeLongNames[insuredType]} cover cannot exceed</Text>
+                <Text style={styles.errorText}>Main Life cover</Text>
+              </View>
+            )
+          )}
+        </View>
+      
           )}
           {insuredType === 'additionalChildren' && canAddMore(insuredType, additionalChildrenCount, 5) && (
-            <View style={styles.additionalChildrenContainer}>
-              {Array.from({ length: additionalChildrenCount }, (_, index) => (
-                <View key={`additionalChildren_${index + 1}`} style={styles.radioContainer}>
-                  <RadioButton
-                    value={`additionalChildren_${index + 1}`}
-                    status={selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`) ? 'checked' : 'unchecked'}
-                    onPress={() => handleRadioButtonPress('funeral', `additionalChildren_${index + 1}`)}
-                  />
-                  <Text style={styles.radioLabel}>
-                    {selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`)
-                      ? insuredTypeShortNames['additionalChildren']
-                      : insuredTypeLongNames['additionalChildren']}
-                  </Text>
-                  {selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`) && (
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={selectedAgeBands[`additionalChildren_${index + 1}`]}
-                        style={styles.picker}
-                        onValueChange={(value) => handleAgeBandChange('funeral', `additionalChildren_${index + 1}`, value)}
-                      >
-                        <Picker.Item label="Age Band" value="" color="purple" />
-                        {getAgeBands(funeralBenefitData, 'additionalChildren').map((band) => (
-                          <Picker.Item key={band} label={band} value={band} color="purple" />
-                        ))}
-                      </Picker>
-                      <Picker
-                        selectedValue={selectedFuneralSumAssured[`additionalChildren_${index + 1}`]}
-                        style={styles.picker}
-                        onValueChange={(value) => handleSumAssuredChange('funeral', `additionalChildren_${index + 1}`, value)}
-                      >
-                        <Picker.Item label="Sum Assured" value="" color="purple" />
-                        {getSumAssuredOptions(funeralBenefitData, 'additionalChildren', selectedAgeBands[`additionalChildren_${index + 1}`]).map((sum) => (
-                          <Picker.Item key={sum} label={sum} value={sum} color="purple" />
-                        ))}
-                      </Picker>
-                      {selectedFuneralSumAssured[`additionalChildren_${index + 1}`] && (
-                        parseFloat(selectedFuneralSumAssured[`additionalChildren_${index + 1}`]) <= parseFloat(selectedFuneralSumAssured['mainLifeInsured']) ? (
-                          <Text style={styles.amountText}>
-                            {' = M'}
-                            {getAmount(funeralBenefitData, 'additionalChildren', selectedAgeBands[`additionalChildren_${index + 1}`], selectedFuneralSumAssured[`additionalChildren_${index + 1}`]).toFixed(2)}
-                          </Text>
-                        ) : (
-                          <View style={styles.errorTextContainer}>
-                            <Text style={styles.errorText}>{insuredTypeLongNames['additionalChildren']} cover cannot </Text>
-                            <Text style={styles.errorText}>exceed Main Life cover</Text>
-                          </View>
-                        )
-                      )}
-                    </View>
-                  )}
-                </View>
+  <View style={styles.additionalChildrenContainer}>
+    {Array.from({ length: additionalChildrenCount }, (_, index) => (
+      <View key={`additionalChildren_${index + 1}`} style={styles.radioContainer}>
+        <RadioButton
+          value={`additionalChildren_${index + 1}`}
+          status={selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`) ? 'checked' : 'unchecked'}
+          onPress={() => handleRadioButtonPress('funeral', `additionalChildren_${index + 1}`)}
+        />
+        <Text style={styles.radioLabel}>
+          {selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`)
+            ? insuredTypeShortNames['additionalChildren']
+            : insuredTypeLongNames['additionalChildren']}
+        </Text>
+        {selectedFuneralInsuredTypes.includes(`additionalChildren_${index + 1}`) && (
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedAgeBands[`additionalChildren_${index + 1}`]}
+              style={styles.picker}
+              onValueChange={(value) => handleAgeBandChange('funeral', `additionalChildren_${index + 1}`, value)}
+            >
+              <Picker.Item label="Age Band" value="" color="purple" />
+              {getAgeBands(funeralBenefitData, 'additionalChildren').map((band) => (
+                <Picker.Item key={band} label={band} value={band} color="purple" />
               ))}
-              <TouchableOpacity onPress={() => setAdditionalChildrenCount(additionalChildrenCount + 1)} disabled={additionalChildrenCount >= 4}>
-                <Text style={styles.addMoreText}>Add More Additional Children</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            </Picker>
+            <Picker
+              selectedValue={selectedFuneralSumAssured[`additionalChildren_${index + 1}`]}
+              style={styles.picker}
+              onValueChange={(value) => handleSumAssuredChange('funeral', `additionalChildren_${index + 1}`, value)}
+            >
+              <Picker.Item label="Sum Assured" value="" color="purple" />
+              {getSumAssuredOptions(funeralBenefitData, 'additionalChildren', selectedAgeBands[`additionalChildren_${index + 1}`]).map((sum) => (
+                <Picker.Item key={sum} label={sum} value={sum} color="purple" />
+              ))}
+            </Picker>
+            {selectedFuneralSumAssured[`additionalChildren_${index + 1}`] && (
+              parseFloat(selectedFuneralSumAssured[`additionalChildren_${index + 1}`]) <= parseFloat(selectedFuneralSumAssured['mainLifeInsured']) ? (
+                <Text style={styles.amountText}>
+                  {' = M'}
+                  {getAmount(funeralBenefitData, 'additionalChildren', selectedAgeBands[`additionalChildren_${index + 1}`], selectedFuneralSumAssured[`additionalChildren_${index + 1}`]).toFixed(2)}
+                </Text>
+              ) : (
+                <View style={styles.errorTextContainer}>
+                  <Text style={styles.errorText}>{insuredTypeLongNames['additionalChildren']} cover cannot </Text>
+                  <Text style={styles.errorText}>exceed Main Life cover</Text>
+                </View>
+              )
+            )}
+          </View>
+        )}
+      </View>
+    ))}
+    {additionalChildrenCount < 4 && (
+      <TouchableOpacity onPress={() => setAdditionalChildrenCount(additionalChildrenCount + 1)}>
+        <Text style={styles.addMoreText}>Click to add(+) Additional Child</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+)}
+
           {insuredType === 'parents' && canAddMore(insuredType, parentsCount, 4) && (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: parentsCount }, (_, index) => (
@@ -1796,12 +1957,14 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)} disabled={parentsCount >= 3}>
-                <Text style={styles.addMoreText}>Add More Parents</Text>
+              {parentsCount < 3 && (
+              <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)}>
+                <Text style={styles.addMoreText}>Click to add(+) Parent</Text>
               </TouchableOpacity>
+              )}
             </View>
           )}
-          {insuredType === 'extendedFamilyChildren' && canAddMore(insuredType, extendedFamilyChildrenCount, 4) && (
+          {insuredType === 'extendedFamilyChildren' && canAddMore(insuredType, extendedFamilyChildrenCount, 8) && (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: extendedFamilyChildrenCount }, (_, index) => (
                 <View key={`extendedFamilyChildren_${index + 1}`} style={styles.radioContainer}>
@@ -1854,12 +2017,14 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              <TouchableOpacity onPress={() => setExtendedFamilyChildrenCount(extendedFamilyChildrenCount + 1)} disabled={extendedFamilyChildrenCount >= 3}>
-                <Text style={styles.addMoreText}>Add More Extended Family Children</Text>
+              {extendedFamilyChildrenCount < 7 && (
+              <TouchableOpacity onPress={() => setExtendedFamilyChildrenCount(extendedFamilyChildrenCount + 1)}>
+                <Text style={styles.addMoreText}>Click to add(+) Extended Family Child</Text>
               </TouchableOpacity>
+              )}
             </View>
           )}
-          {insuredType === 'extendedFamilyMembers' && canAddMore(insuredType, extendedFamilyMembersCount, 6) && (
+          {insuredType === 'extendedFamilyMembers' && canAddMore(insuredType, extendedFamilyMembersCount, 8) && (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: extendedFamilyMembersCount }, (_, index) => (
                 <View key={`extendedFamilyMembers_${index + 1}`} style={styles.radioContainer}>
@@ -1912,26 +2077,48 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)} disabled={extendedFamilyMembersCount >= 5}>
-                <Text style={styles.addMoreText}>Add More Extended Family Members</Text>
+              {extendedFamilyMembersCount < 7 && (
+              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)}>
+                <Text style={styles.addMoreText}>Click to add(+) Extended Family Member</Text>
               </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.fixedAmountSection}>
+    {
+  errorMessage.length > 0 ? (
+    <View>
+      {errorMessage.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : successMessage.length > 0 ? (
+    <View>
+      {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (
+    <>
       <Text style={styles.label}>TOTAL FUNERAL BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalFuneralPremium.toFixed(2)}</Text>
-    </View>
+    </>
+  )
+}
+
+</View>
   </View>
 )}
 
-
   
-<TouchableOpacity style={styles.button} onPress={() => setShowTombstoneBenefitPicker(!showTombstoneBenefitPicker)}>
+<TouchableOpacity style={getButtonStyle()} onPress={() => setShowTombstoneBenefitPicker(!showTombstoneBenefitPicker)}>
   <Text style={styles.buttonText}>Tombstone Benefit</Text>
-  <Text style={styles.totalAmountTextButton}>{'M'}{totalTombstonePremium.toFixed(2)}</Text>
+  { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalTombstonePremium.toFixed(2)}</Text>)}
   <Icon
     name="arrow-drop-down"
     size={20}
@@ -1994,7 +2181,7 @@ const getButtonStyle = () => {
               )}
             </View>
           )}
-          {insuredType === 'parents' && (
+          {insuredType === 'parents' && canAddMore('parents', parentsCount, 4) && (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: parentsCount }, (_, index) => (
                 <View key={`parents_${index + 1}`} style={styles.radioContainer}>
@@ -2048,9 +2235,10 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              {canAddMore('parents', parentsCount, 4) && (
+              
+              {parentsCount < 3 && (
                 <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)} disabled={parentsCount >= 3}>
-                  <Text style={styles.addMoreText}>Add More Parents</Text>
+                  <Text style={styles.addMoreText}>Click to add(+) Parent</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -2109,27 +2297,46 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)} disabled={extendedFamilyChildrenCount + extendedFamilyMembersCount >= 7}>
-                <Text style={styles.addMoreText}>Add More Extended Family Members</Text>
+              {extendedFamilyMembersCount < 7 && (
+              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)}>
+                <Text style={styles.addMoreText}>Click to add(+) Extended Family Member</Text>
               </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.fixedAmountSection}>
+    {
+  errorMessage.length > 0 ? (
+    <View>
+      {errorMessage.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : successMessage.length > 0 ? (
+    <View>
+      {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (
+    <>
       <Text style={styles.label}>TOTAL TOMBSTONE BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalTombstonePremium.toFixed(2)}</Text>
-    </View>
+    </>
+  )}
+</View>
   </View>
 )}
 
 
-
-
-<TouchableOpacity style={styles.button} onPress={() => setShowCowBenefitPicker(!showCowBenefitPicker)}>
+<TouchableOpacity style={getButtonStyle()} onPress={() => setShowCowBenefitPicker(!showCowBenefitPicker)}>
   <Text style={styles.buttonText}>Cow Benefit</Text>
-  <Text style={styles.totalAmountTextButton}>{'M'}{totalCowPremium.toFixed(2)}</Text>
+ { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ) : (<Text style={styles.totalAmountTextButton}>{'M'}{totalCowPremium.toFixed(2)}</Text>)}
   <Icon
     name="arrow-drop-down"
     size={20}
@@ -2191,7 +2398,7 @@ const getButtonStyle = () => {
               )}
             </View>
           )}
-          {insuredType === 'parents' && (
+          {insuredType === 'parents' && canAddMore('parents', parentsCount, 4) &&  (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: parentsCount }, (_, index) => (
                 <View key={`parents_${index + 1}`} style={styles.radioContainer}>
@@ -2245,9 +2452,9 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              {canAddMore('parents', parentsCount, 4) && (
-                <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)} disabled={parentsCount >= 4}>
-                  <Text style={styles.addMoreText}>Add More Parents</Text>
+              {parentsCount < 4 && (
+                <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)}>
+                  <Text style={styles.addMoreText}>Click to add(+) Parent</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -2306,31 +2513,50 @@ const getButtonStyle = () => {
                   )}
                 </View>
               ))}
-              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)} disabled={extendedFamilyChildrenCount + extendedFamilyMembersCount >= 7}>
-                <Text style={styles.addMoreText}>Add More Extended Family Members</Text>
+              {/*disabled={extendedFamilyChildrenCount + extendedFamilyMembersCount >= 7}*/}
+              {extendedFamilyMembersCount < 7 && (
+              <TouchableOpacity onPress={() => setExtendedFamilyMembersCount(extendedFamilyMembersCount + 1)} >
+                <Text style={styles.addMoreText}>Click to add(+) Extended Family Member</Text>
               </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
       ))}
     </View>
     <View style={styles.fixedAmountSection}>
+    {
+  errorMessage.length > 0 ? (
+    <View>
+      {errorMessage.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : successMessage.length > 0 ? (
+    <View>
+      {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (
+    <>
       <Text style={styles.label}>TOTAL COW BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalCowPremium.toFixed(2)}</Text>
-    </View>
+      </>
+  )}
+</View>
   </View>
 )}
 
 
-
-
-
 <TouchableOpacity
-  style={styles.button}
+  style={getButtonStyle()}
   onPress={() => setShowFamilyProviderBenefitPicker(!showFamilyProviderBenefitPicker)}
 >
   <Text style={styles.buttonText}>Monthly Provider Benefit</Text>
-  <Text style={styles.totalAmountTextButton}>{'M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
+  { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ) : (<Text style={styles.totalAmountTextButton}>{'M'}{totalFamilyProviderPremium.toFixed(2)}</Text>)}
   <Icon
     name="arrow-drop-down"
     size={20}
@@ -2423,21 +2649,138 @@ const getButtonStyle = () => {
       ))}
     </View>
     <View style={styles.fixedAmountSection}>
+    {
+  errorMessage.length > 0 ? (
+    <View>
+      {errorMessage.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : successMessage.length > 0 ? (
+    <View>
+      {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (
+    <>
       <Text style={styles.label}>TOTAL MONTHLY PROVIDER PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalFamilyProviderPremium.toFixed(2)}</Text>
-    </View>
+      </>
+  )}
+</View>
   </View>
+)}
+
+{selectedFuneralInsuredTypes.includes('mainLifeInsured') &&
+selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
+<>
+<TouchableOpacity
+style={getButtonStyleTwo()}
+onPress={() => setShowLifeCoverBenefitPicker(!showLifeCoverBenefitPicker)}
+>
+<Text style={styles.buttonText}>Life Cover Benefit</Text>
+{errorMessageTwo ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalLifeCoverPremium.toFixed(2)}</Text>)}
+<Icon
+name="arrow-drop-down"
+size={20}
+color="#FFFFFF"
+style={styles.icon} // Style for the icon
+/>
+</TouchableOpacity>
+
+{showLifeCoverBenefitPicker && (
+  <View style={styles.container}>
+    <View style={styles.column}>
+      {Object.keys(lifeCoverBenefitData).map((insuredType) => (
+        <View key={insuredType} style={styles.row}>
+          <RadioButton
+            value={insuredType}
+            status={selectedLifeCoverTypes.includes(insuredType) ? 'checked' : 'unchecked'}
+            onPress={() => handleLifeCoverRadioButtonPress(insuredType)}
+          />
+          <Text style={styles.radioLabel}>
+            {selectedLifeCoverTypes.includes(insuredType)
+              ? insuredTypeShortNames[insuredType]
+              : insuredTypeLongNames[insuredType]}
+          </Text>
+          {selectedLifeCoverTypes.includes(insuredType) && (
+            <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedAgeBands[insuredType]}
+              style={styles.picker}
+              onValueChange={(value) => handleAgeBandChange(insuredType, value)}
+              enabled={insuredType !== 'mainLifeInsured' && insuredType !== 'partner' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers'}
+            >
+              <Picker.Item label="Age Band" value="" color="purple" />
+              {getAgeBands(lifeCoverBenefitData, insuredType).map((band) => (
+                <Picker.Item key={band} label={band} value={band} color="purple" />
+              ))}
+            </Picker>
+            <Picker
+              selectedValue={lifeSelectedSumAssured[insuredType]}
+              style={styles.picker}
+              onValueChange={(value) =>
+                setSelectedSumAssured((prevSumAssured) => ({
+                  ...prevSumAssured,
+                  [insuredType]: value,
+                }))
+              }
+            >
+              <Picker.Item label="Sum Assured" value="" color="purple" />
+              {getSumAssuredOptions(
+                lifeCoverBenefitData,
+                insuredType,
+                selectedAgeBands[insuredType]
+              ).map((sum) => (
+                <Picker.Item key={sum} label={sum} value={sum} color="purple" />
+              ))}
+            </Picker>
+            {lifeSelectedSumAssured[insuredType] && (
+              <Text style={styles.amountText}>
+                {' = M'}
+                {getAmount(
+                  lifeCoverBenefitData,
+                  insuredType,
+                  selectedAgeBands[insuredType],
+                  lifeSelectedSumAssured[insuredType]
+                ).toFixed(2)}
+              </Text>
+            )}
+          </View>
+          
+          )}
+        </View>
+      ))}
+    </View>
+    <View style={styles.fixedAmountSection}>
+  {errorMessageTwo ? (
+    <Text style={styles.errorText}>{errorMessageTwo}</Text>
+  ) : (
+    <>
+      <Text style={styles.label}>TOTAL LIFE COVER BENEFIT PREMIUM</Text>
+      <Text style={styles.totalAmountText}>{' = M'}{totalLifeCoverPremium.toFixed(2)}</Text>
+      </>
+  )}
+</View>
+  </View>
+)}
+</>
 )}
 
 {selectedFuneralInsuredTypes.includes('mainLifeInsured') &&
 selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
   <>
     <TouchableOpacity
-      style={styles.button}
+      style={getButtonStyleTwo()}
       onPress={() => setShowDeathIncomeBenefitPicker(!showDeathIncomeBenefitPicker)}
     >
       <Text style={styles.buttonText}>Death Income Benefit</Text>
-      <Text style={styles.totalAmountTextButton}>{'M'}{totalDeathIncomePremium.toFixed(2)}</Text>
+      {errorMessageTwo ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalDeathIncomePremium.toFixed(2)}</Text>)}
       <Icon
         name="arrow-drop-down"
         size={20}
@@ -2501,6 +2844,7 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
                         ...prevPeriods,
                         [insuredType]: value,
                       }))
+                      
                     }
                   >
                     <Picker.Item label="Period" value="" color="purple" />
@@ -2532,115 +2876,95 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
           ))}
         </View>
         <View style={styles.fixedAmountSection}>
+  {errorMessageTwo ? (
+    <Text style={styles.errorText}>{errorMessageTwo}</Text>
+  ) : (
+    <>
           <Text style={styles.label}>TOTAL DEATH INCOME BENEFIT PREMIUM</Text>
           <Text style={styles.totalAmountText}>{' = M'}{totalDeathIncomePremium.toFixed(2)}</Text>
-        </View>
+          </>
+  )}
+</View>
       </View>
     )}
   </>
 )}
 
-{selectedFuneralInsuredTypes.includes('mainLifeInsured') &&
-selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
-<>
-<TouchableOpacity
-style={styles.button}
-onPress={() => setShowLifeCoverBenefitPicker(!showLifeCoverBenefitPicker)}
->
-<Text style={styles.buttonText}>Life Cover Benefit</Text>
-<Text style={styles.totalAmountTextButton}>{'M'}{totalLifeCoverPremium.toFixed(2)}</Text>
-<Icon
-name="arrow-drop-down"
-size={20}
-color="#FFFFFF"
-style={styles.icon} // Style for the icon
-/>
-</TouchableOpacity>
 
-{showLifeCoverBenefitPicker && (
-  <View style={styles.container}>
-    <View style={styles.column}>
-      {Object.keys(lifeCoverBenefitData).map((insuredType) => (
-        <View key={insuredType} style={styles.row}>
-          <RadioButton
-            value={insuredType}
-            status={selectedLifeCoverTypes.includes(insuredType) ? 'checked' : 'unchecked'}
-            onPress={() => handleLifeCoverRadioButtonPress(insuredType)}
-          />
-          <Text style={styles.radioLabel}>
-            {selectedLifeCoverTypes.includes(insuredType)
-              ? insuredTypeShortNames[insuredType]
-              : insuredTypeLongNames[insuredType]}
-          </Text>
-          {selectedLifeCoverTypes.includes(insuredType) && (
-            <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedAgeBands[insuredType]}
-              style={styles.picker}
-              onValueChange={(value) => handleAgeBandChange(insuredType, value)}
-              enabled={insuredType !== 'mainLifeInsured' && insuredType !== 'partner' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers'}
-            >
-              <Picker.Item label="Age Band" value="" color="purple" />
-              {getAgeBands(lifeCoverBenefitData, insuredType).map((band) => (
-                <Picker.Item key={band} label={band} value={band} color="purple" />
-              ))}
-            </Picker>
-            <Picker
-              selectedValue={selectedSumAssured[insuredType]}
-              style={styles.picker}
-              onValueChange={(value) =>
-                setSelectedSumAssured((prevSumAssured) => ({
-                  ...prevSumAssured,
-                  [insuredType]: value,
-                }))
-              }
-            >
-              <Picker.Item label="Sum Assured" value="" color="purple" />
-              {getSumAssuredOptions(
-                lifeCoverBenefitData,
-                insuredType,
-                selectedAgeBands[insuredType]
-              ).map((sum) => (
-                <Picker.Item key={sum} label={sum} value={sum} color="purple" />
-              ))}
-            </Picker>
-            {selectedSumAssured[insuredType] && (
-              <Text style={styles.amountText}>
-                {' = M'}
-                {getAmount(
-                  lifeCoverBenefitData,
-                  insuredType,
-                  selectedAgeBands[insuredType],
-                  selectedSumAssured[insuredType]
-                ).toFixed(2)}
-              </Text>
-            )}
-          </View>
-          
-          )}
-        </View>
+<View>
+{
+  errorMessage.length > 0 ? (
+    <View>
+      {errorMessage.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-    <View style={styles.fixedAmountSection}>
-      <Text style={styles.label}>TOTAL LIFE COVER BENEFIT PREMIUM</Text>
-      <Text style={styles.totalAmountText}>{' = M'}{totalLifeCoverPremium.toFixed(2)}</Text>
+  ) : errorMessageTwo ? (
+    <Text style={styles.errorTextTotal}>{errorMessageTwo}</Text>
+  ) : errorMessageThree ? (
+    <Text style={styles.errorTextTotal}>{errorMessageThree}</Text>
+  ) : successMessage.length > 0 ? (
+    <View>
+      {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
     </View>
-  </View>
-)}
-</>
-)}
+  ) : (
+    <>
+      <Text style={styles.totalAmountTextTwo}>Subtotal{' = M'}{totalPremium.toFixed(2)}</Text>
+      <Text style={styles.totalAmountTextTwo}>Policy Fee{' = M10.00'}</Text>
+      <Text style={styles.labelTotal}>TOTAL PREMIUM(.incl fee){' = M'}{(totalPremium + 10).toFixed(2)}</Text>
+    </>
+  )
+}
+</View>
 
-
-
-
-      <Text style={styles.label}>TOTAL PREMIUM</Text>
-      <Text style={styles.totalAmountText}>{' = M'}{totalPremium.toFixed(2)}</Text>
     </View>
 
     <View style={styles.buttonResetContainer} >
     <TouchableOpacity style={styles.buttonReset} onPress={resetAllSelections}>
   <Text style={styles.buttonText}>Reset Selections</Text>
 </TouchableOpacity>
+
+<Modal
+  transparent={true}
+  animationType="slide"
+  visible={isModalVisible}
+  onRequestClose={() => {
+    setModalVisible(false);
+    setSuccessMessage([]);
+  }}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}>
+      {errorMessage.length > 0 ? (
+        <View>
+          {errorMessage.map((message, index) => (
+            <Text key={index} style={styles.errorText}>{message}</Text>
+          ))}
+        </View>
+      ) : successMessage.length > 0 ? (
+        <View>
+          {successMessage.map((message, index) => (
+            <Text key={index} style={styles.successText}>{message}</Text>
+          ))}
+        </View>
+      ) : null}
+      <TouchableOpacity
+        onPress={() => {
+          setModalVisible(false);
+          setSuccessMessage([]);
+        }}
+        style={styles.closeButton}
+      >
+        <Text style={styles.closeButtonText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+
+
 </View>
 
     </ScrollView>
@@ -2752,7 +3076,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: 'purple',
-    
+  },
+  labelTotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'purple',
+    marginBottom: '45'
   },
   amountText: {
     fontSize: 16,
@@ -2763,6 +3092,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'purple',
     fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  totalAmountTextTwo: {
+    fontSize: 16,
+    color: 'purple',
     marginLeft: 4,
   },
   totalAmountTextButton: {
@@ -2797,22 +3131,55 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginTop: 10,
-    width: '100%',
+    
   },
-  
+  successText: {
+    color: 'green',
+    textAlign: 'center',
+    marginTop: 10,
+    
+  },
+  errorTextTotal: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 10,
+  },
   addMoreText: {
     color: 'cornflowerblue',
-    textDecorationLine: 'underline',
+    //textDecorationLine: 'underline',
     marginLeft: 10,
     fontSize: 14,
     marginTop: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   additionalChildrenContainer: {
     marginLeft: 20,
     marginTop: 10,
     alignItems: 'flex-start',
   },
-
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  closeButton: {
+    padding: 10,
+    backgroundColor: 'cornflowerblue',
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
 });
    
 export default App;
