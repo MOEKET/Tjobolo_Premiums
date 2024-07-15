@@ -39,11 +39,13 @@ const App = () => {
   const [familyProviderSelectedAgeBands, setFamilyProviderSelectedAgeBands] = useState({});
   const [familyProviderSelectedSumAssured, setFamilyProviderSelectedSumAssured] = useState({});
   const [familyProviderSelectedPeriods, setFamilyProviderSelectedPeriods] = useState({});
+  const [totalFamilyProviderPremium, setTotalFamilyProviderPremium] = useState(0);
 
   const [deathIncomeSelectedAgeBands, setDeathIncomeSelectedAgeBands] = useState({});
   const [deathIncomeSelectedSumAssured, setDeathIncomeSelectedSumAssured] = useState({});
   const [deathIncomeSelectedPeriods, setDeathIncomeSelectedPeriods] = useState({});
-
+  
+  
   const [totalPremium, setTotalPremium] = useState(0);
   const [totalFuneralPremium, setTotalFuneralPremium] = useState(0);
   const [totalTombstonePremium, setTotalTombstonePremium] = useState(0);
@@ -54,13 +56,19 @@ const App = () => {
   const [totalSumAssuredThree, setTotalSumAssuredThree] = useState(0);
 
   const [totalSumAssuredMainLife, setTotalSumAssuredMainLife] = useState(0);
-const [totalSumAssuredPartner, setTotalSumAssuredPartner] = useState(0);
+  const [totalSumAssuredPartner, setTotalSumAssuredPartner] = useState(0);
+  const [totalSumAssuredTwoMainLife, setTotalSumAssuredTwoMainLife] = useState(0);
+  const [totalSumAssuredTwoPartner, setTotalSumAssuredTwoPartner] = useState(0);
+  const [totalSumAssuredThreeMainLife, setTotalSumAssuredThreeMainLife] = useState(0);
+  const [totalSumAssuredThreePartner, setTotalSumAssuredThreePartner] = useState(0);
+
 
 
   const [errorMessage, setErrorMessage] = useState('');
-  const [errorMessageTwo, setErrorMessageTwo] = useState('');
+  
   const [errorMessageThree, setErrorMessageThree] = useState('');
   const [hadError, setHadError] = useState(false);
+  const [hadErrorTwo, setHadErrorTwo] = useState(false);
 
   const [additionalChildrenCount, setAdditionalChildrenCount] = useState(0);
   const [parentsCount, setParentsCount] = useState(0);
@@ -69,6 +77,8 @@ const [totalSumAssuredPartner, setTotalSumAssuredPartner] = useState(0);
   const [extendedFamilyMembersCount, setExtendedFamilyMembersCount] = useState(0);
   const [isModalVisible, setModalVisible] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [successMessageTwo, setSuccessMessageTwo] = useState('');
+  const [successMessageThree, setSuccessMessageThree] = useState('');
   
   useEffect(() => {
     calculateTotalFuneralPremium();
@@ -1235,17 +1245,11 @@ const getPeriodOptions = (data, insuredType, ageBand, sumAssured) => {
     .map((key) => key.split('x')[1]);
 };
 
-const calculateTotalPremium = (data, selectedInsuredTypes) => {
-  return selectedInsuredTypes.reduce((total, insuredType) => {
-    const ageBand = selectedAgeBands[insuredType];
-    const sumAssured = lifeSelectedSumAssured[insuredType];
-    const amount = getAmount(data, insuredType, ageBand, sumAssured);
-    return total + (amount ? parseFloat(amount) : 0);
-  }, 0);
-};
+
 
 const calculateTotalFuneralPremium = () => {
   let totalPremium = 0;
+  let mainLifeInsuredAlreadyAdded = false;
 
   const addAmountIfValid = (insuredType, sumAssured, mainLifeInsuredSumAssured) => {
     if (sumAssured && sumAssured <= mainLifeInsuredSumAssured) {
@@ -1259,35 +1263,52 @@ const calculateTotalFuneralPremium = () => {
     const mainLifeInsuredSumAssured = selectedFuneralSumAssured['mainLifeInsured'];
 
     if (ageBand && sumAssured) {
-      addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+      if (insuredType === 'mainLifeInsured' && !mainLifeInsuredAlreadyAdded) {
+        addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+        mainLifeInsuredAlreadyAdded = true;
+      } else if (insuredType !== 'mainLifeInsured') {
+        addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+      }
     }
   });
 
   // Add premiums for additional children
   for (let i = 0; i < additionalChildrenCount; i++) {
-    if (selectedFuneralSumAssured[`additionalChildren_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(funeralBenefitData, 'additionalChildren', selectedAgeBands[`additionalChildren_${i + 1}`], selectedFuneralSumAssured[`additionalChildren_${i + 1}`]).toFixed(2));
+    const insuredType = `additionalChildren_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      if (selectedFuneralSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(funeralBenefitData, 'additionalChildren', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
+      }
     }
   }
 
   // Add premiums for parents
   for (let i = 0; i < parentsCount; i++) {
-    if (selectedFuneralSumAssured[`parents_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(funeralBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedFuneralSumAssured[`parents_${i + 1}`]).toFixed(2));
+    const insuredType = `parents_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      if (selectedFuneralSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(funeralBenefitData, 'parents', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
+      }
     }
   }
 
   // Add premiums for extended family children
   for (let i = 0; i < extendedFamilyChildrenCount; i++) {
-    if (selectedFuneralSumAssured[`extendedFamilyChildren_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyChildren', selectedAgeBands[`extendedFamilyChildren_${i + 1}`], selectedFuneralSumAssured[`extendedFamilyChildren_${i + 1}`]).toFixed(2));
+    const insuredType = `extendedFamilyChildren_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      if (selectedFuneralSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyChildren', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
+      }
     }
   }
 
   // Add premiums for extended family members
   for (let i = 0; i < extendedFamilyMembersCount; i++) {
-    if (selectedFuneralSumAssured[`extendedFamilyMembers_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedFuneralSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
+    const insuredType = `extendedFamilyMembers_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      if (selectedFuneralSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyMembers', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
+      }
     }
   }
 
@@ -1299,6 +1320,7 @@ useEffect(() => {
 }, [
   selectedFuneralSumAssured,
   selectedAgeBands,
+  selectedFuneralInsuredTypes, // Added dependency
   additionalChildrenCount,
   parentsCount,
   extendedFamilyChildrenCount,
@@ -1306,8 +1328,12 @@ useEffect(() => {
 ]);
 
 
+
+
+
 const calculateTotalTombstonePremium = () => {
   let totalPremium = 0;
+  let mainLifeInsuredAlreadyAdded = false;
 
   const addAmountIfValid = (insuredType, sumAssured, mainLifeInsuredSumAssured) => {
     if (sumAssured && sumAssured <= mainLifeInsuredSumAssured) {
@@ -1316,26 +1342,37 @@ const calculateTotalTombstonePremium = () => {
   };
 
   selectedTombstoneInsuredTypes.forEach((insuredType) => {
-    const ageBand = selectedAgeBands[insuredType];
-    const sumAssured = selectedTombstoneSumAssured[insuredType];
-    const mainLifeInsuredSumAssured = selectedTombstoneSumAssured['mainLifeInsured'];
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      const ageBand = selectedAgeBands[insuredType];
+      const sumAssured = selectedTombstoneSumAssured[insuredType];
+      const mainLifeInsuredSumAssured = selectedTombstoneSumAssured['mainLifeInsured'];
 
-    if (ageBand && sumAssured) {
-      addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+      if (ageBand && sumAssured) {
+        if (insuredType === 'mainLifeInsured' && !mainLifeInsuredAlreadyAdded) {
+          addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+          mainLifeInsuredAlreadyAdded = true;
+        } else if (insuredType !== 'mainLifeInsured') {
+          addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+        }
+      }
     }
   });
 
   for (let i = 0; i < parentsCount; i++) {
-    if (selectedTombstoneSumAssured[`parents_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedTombstoneSumAssured[`parents_${i + 1}`]).toFixed(2));
+    if (selectedFuneralInsuredTypes.includes(`parents_${i + 1}`)) {
+      if (selectedTombstoneSumAssured[`parents_${i + 1}`]) {
+        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedTombstoneSumAssured[`parents_${i + 1}`]).toFixed(2));
+      }
     }
   }
 
-      for (let i = 0; i < extendedFamilyMembersCount; i++) {
-        if (selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]) {
-          totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
-        }
+  for (let i = 0; i < extendedFamilyMembersCount; i++) {
+    if (selectedFuneralInsuredTypes.includes(`extendedFamilyMembers_${i + 1}`)) {
+      if (selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]) {
+        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
       }
+    }
+  }
 
   setTotalTombstonePremium(totalPremium);
 };
@@ -1346,13 +1383,17 @@ useEffect(() => {
   selectedTombstoneInsuredTypes,
   selectedAgeBands,
   selectedTombstoneSumAssured,
+  selectedFuneralInsuredTypes,
   parentsCount,
   extendedFamilyMembersCount,
 ]);
 
 
+
+
 const calculateTotalCowPremium = () => {
   let totalPremium = 0;
+  let mainLifeInsuredAlreadyAdded = false;
 
   const addAmountIfValid = (insuredType, sumAssured, mainLifeInsuredSumAssured) => {
     if (sumAssured && sumAssured <= mainLifeInsuredSumAssured) {
@@ -1361,26 +1402,37 @@ const calculateTotalCowPremium = () => {
   };
 
   selectedCowInsuredTypes.forEach((insuredType) => {
-    const ageBand = selectedAgeBands[insuredType];
-    const sumAssured = selectedCowSumAssured[insuredType];
-    const mainLifeInsuredSumAssured = selectedCowSumAssured['mainLifeInsured'];
+    if (selectedFuneralInsuredTypes.includes(insuredType)) {
+      const ageBand = selectedAgeBands[insuredType];
+      const sumAssured = selectedCowSumAssured[insuredType];
+      const mainLifeInsuredSumAssured = selectedCowSumAssured['mainLifeInsured'];
 
-    if (ageBand && sumAssured) {
-      addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+      if (ageBand && sumAssured) {
+        if (insuredType === 'mainLifeInsured' && !mainLifeInsuredAlreadyAdded) {
+          addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+          mainLifeInsuredAlreadyAdded = true;
+        } else if (insuredType !== 'mainLifeInsured') {
+          addAmountIfValid(insuredType, parseFloat(sumAssured), parseFloat(mainLifeInsuredSumAssured));
+        }
+      }
     }
   });
 
   for (let i = 0; i < parentsCount; i++) {
-    if (selectedCowSumAssured[`parents_${i + 1}`]) {
-      totalPremium += parseFloat(getAmount(cowBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedCowSumAssured[`parents_${i + 1}`]).toFixed(2));
+    if (selectedFuneralInsuredTypes.includes(`parents_${i + 1}`)) {
+      if (selectedCowSumAssured[`parents_${i + 1}`]) {
+        totalPremium += parseFloat(getAmount(cowBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedCowSumAssured[`parents_${i + 1}`]).toFixed(2));
+      }
     }
   }
 
-      for (let i = 0; i < extendedFamilyMembersCount; i++) {
-        if (selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]) {
-          totalPremium += parseFloat(getAmount(cowBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
-        }
+  for (let i = 0; i < extendedFamilyMembersCount; i++) {
+    if (selectedFuneralInsuredTypes.includes(`extendedFamilyMembers_${i + 1}`)) {
+      if (selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]) {
+        totalPremium += parseFloat(getAmount(cowBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
       }
+    }
+  }
 
   setTotalCowPremium(totalPremium);
 };
@@ -1391,74 +1443,93 @@ useEffect(() => {
   selectedCowInsuredTypes,
   selectedAgeBands,
   selectedCowSumAssured,
+  selectedFuneralInsuredTypes,
   parentsCount,
   extendedFamilyMembersCount,
 ]);
 
+
+
 const handleMonthlyProviderRadioButtonPress = (insuredType) => {
-  setSelectedMonthlyProviderInsuredTypes((prevTypes) => {
-    const newTypes = prevTypes.includes(insuredType)
-      ? prevTypes.filter((type) => type !== insuredType)
-      : [...prevTypes, insuredType];
+  if (insuredType === 'mainLifeInsured') {
+    // Ensure 'mainLifeInsured' is always included and cannot be toggled off
+    setSelectedMonthlyProviderInsuredTypes((prevTypes) => 
+      prevTypes.includes(insuredType) ? prevTypes : [...prevTypes, insuredType]
+    );
+  } else {
+    setSelectedMonthlyProviderInsuredTypes((prevTypes) => {
+      const newTypes = prevTypes.includes(insuredType)
+        ? prevTypes.filter((type) => type !== insuredType)
+        : [...prevTypes, insuredType];
 
-    if (!newTypes.includes(insuredType)) {
-      // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+      if (!newTypes.includes(insuredType)) {
+        // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+        return newTypes;
+      }
+
+      // If adding insuredType, only update the state if it's a new selection
+      setFamilyProviderSelectedAgeBands((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+      setFamilyProviderSelectedSumAssured((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+      setFamilyProviderSelectedPeriods((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+
       return newTypes;
-    }
-
-    // If adding insuredType, only update the state if it's a new selection
-    setFamilyProviderSelectedAgeBands((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-    setFamilyProviderSelectedSumAssured((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-    setFamilyProviderSelectedPeriods((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-
-    return newTypes;
-  });
+    });
+  }
 };
 
 const handleDeathIncomeRadioButtonPress = (insuredType) => {
   setSelectedDeathIncomeTypes((prevTypes) => {
-    const newTypes = prevTypes.includes(insuredType)
-      ? prevTypes.filter((type) => type !== insuredType)
-      : [...prevTypes, insuredType];
+    if (insuredType === 'mainLifeInsured') {
+      // Ensure 'mainLifeInsured' is always included and cannot be toggled off
+      return prevTypes.includes(insuredType) ? prevTypes : [...prevTypes, insuredType];
+    } else {
+      const newTypes = prevTypes.includes(insuredType)
+        ? prevTypes.filter((type) => type !== insuredType)
+        : [...prevTypes, insuredType];
 
-    if (!newTypes.includes(insuredType)) {
-      // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+      if (!newTypes.includes(insuredType)) {
+        // If removing insuredType, keep the current state for Age Band, Sum Assured, and Period
+        return newTypes;
+      }
+
+      // If adding insuredType, only update the state if it's a new selection
+      setDeathIncomeSelectedAgeBands((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+      setDeathIncomeSelectedSumAssured((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+      setDeathIncomeSelectedPeriods((prev) => ({
+        ...prev,
+        [insuredType]: prev[insuredType] || '',
+      }));
+
       return newTypes;
     }
-
-    // If adding insuredType, only update the state if it's a new selection
-    setDeathIncomeSelectedAgeBands((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-    setDeathIncomeSelectedSumAssured((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-    setDeathIncomeSelectedPeriods((prev) => ({
-      ...prev,
-      [insuredType]: prev[insuredType] || '',
-    }));
-
-    return newTypes;
   });
 };
 
 const handleLifeCoverRadioButtonPress = (insuredType) => {
   setSelectedLifeCoverInsuredTypes((prevSelected) => {
-    if (prevSelected.includes(insuredType)) {
-      return prevSelected.filter((type) => type !== insuredType);
+    if (insuredType === 'mainLifeInsured') {
+      // Ensure 'mainLifeInsured' is always included and cannot be toggled off
+      return prevSelected.includes(insuredType) ? prevSelected : [...prevSelected, insuredType];
     } else {
-      return [...prevSelected, insuredType];
+      // Add or remove the insured type as required
+      return prevSelected.includes(insuredType)
+        ? prevSelected.filter((type) => type !== insuredType)
+        : [...prevSelected, insuredType];
     }
   });
 };
@@ -1515,69 +1586,226 @@ const handleRadioButtonPress = (benefitType, insuredType) => {
       // Automatically set the age band for children-related insured types
       handleAgeBandChange('funeral', insuredType, '0-20/24');
     }
-    setSelectedFuneralInsuredTypes((prevSelected) => 
-      prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
-    );
+    // Ensure 'mainLifeInsured' is always 'on' and cannot be toggled off
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedFuneralInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
+      setSelectedFuneralInsuredTypes((prevSelected) => 
+        prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
+      );
+    }
   } else if (benefitType === 'tombstone') {
-    setSelectedTombstoneInsuredTypes((prevSelected) => 
-      prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
-    );
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedTombstoneInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
+      setSelectedTombstoneInsuredTypes((prevSelected) => 
+        prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
+      );
+    }
+
+    
   } else if (benefitType === 'cow') {
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedCowInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
     setSelectedCowInsuredTypes((prevSelected) => 
       prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
     );
+  }
   } else if (benefitType === 'familyProvider') {
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedMonthlyProviderInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
     setSelectedMonthlyProviderInsuredTypes((prevTypes) =>
       prevTypes.includes(insuredType)
         ? prevTypes.filter((type) => type !== insuredType)
         : [...prevTypes, insuredType]
     );
+  }
   } else if (benefitType === 'deathIncome') {
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedDeathIncomeTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
     setSelectedDeathIncomeTypes((prevTypes) =>
       prevTypes.includes(insuredType)
         ? prevTypes.filter((type) => type !== insuredType)
         : [...prevTypes, insuredType]
     );
+  }
   } else if (benefitType === 'lifeCover') {
+    if (insuredType === 'mainLifeInsured') {
+      
+      setSelectedLifeCoverTypes((prevSelected) => [...prevSelected, insuredType]);
+    } else {
     setSelectedLifeCoverTypes((prevTypes) =>
       prevTypes.includes(insuredType)
         ? prevTypes.filter((type) => type !== insuredType)
         : [...prevTypes, insuredType]
     );
   }
+}
 };
 
 
 
-const totalDeathIncomePremium = selectedDeathIncomeTypes.reduce((total, insuredType) => {
-  const ageBand = selectedAgeBands[insuredType];
-  const sumAssured = deathIncomeSelectedSumAssured[insuredType];
-  const period = deathIncomeSelectedPeriods[insuredType];
+const calculateTotalDeathIncomePremium = () => {
+  let totalPremium = 0;
 
-  if (ageBand && sumAssured && period) {
-    const amount = getAmount(deathIncomeBenefitData, insuredType, ageBand, `${sumAssured}x${period}`);
-    return total + amount;
+  const mainLifeInsuredSumAssured = deathIncomeSelectedSumAssured['mainLifeInsured'];
+  const mainLifeInsuredPeriod = deathIncomeSelectedPeriods['mainLifeInsured'];
+  const mainLifeInsuredAmount = getAmount(
+    deathIncomeBenefitData,
+    'mainLifeInsured',
+    selectedAgeBands['mainLifeInsured'],
+    `${mainLifeInsuredSumAssured}x${mainLifeInsuredPeriod}`
+  );
+
+  const addAmountIfValid = (insuredType, sumAssured, period) => {
+    if (sumAssured && period) {
+      const ageBand = selectedAgeBands[insuredType];
+      const amount = getAmount(deathIncomeBenefitData, insuredType, ageBand, `${sumAssured}x${period}`);
+      if (amount && parseFloat(amount) <= parseFloat(mainLifeInsuredAmount)) {
+        totalPremium += parseFloat(amount);
+      }
+    }
+  };
+
+  selectedDeathIncomeTypes.forEach((insuredType) => {
+    if (selectedFuneralInsuredTypes.includes(insuredType) && insuredType !== 'mainLifeInsured') {
+      const sumAssured = deathIncomeSelectedSumAssured[insuredType];
+      const period = deathIncomeSelectedPeriods[insuredType];
+      addAmountIfValid(insuredType, sumAssured, period);
+    }
+  });
+
+  // Ensure mainLifeInsured is included in the total if it's selected
+  if (selectedFuneralInsuredTypes.includes('mainLifeInsured')) {
+    totalPremium += parseFloat(mainLifeInsuredAmount);
   }
 
-  return total;
-}, 0);
+  return totalPremium;
+};
+
+const totalDeathIncomePremium = calculateTotalDeathIncomePremium();
+
+useEffect(() => {
+  const total = calculateTotalDeathIncomePremium();
+  // Set the total premium to state if needed, e.g., setTotalDeathIncomePremium(total);
+}, [
+  selectedDeathIncomeTypes,
+  selectedAgeBands,
+  deathIncomeSelectedSumAssured,
+  deathIncomeSelectedPeriods,
+  selectedFuneralInsuredTypes, // New line
+]);
 
 
-const totalFamilyProviderPremium = selectedMonthlyProviderInsuredTypes.reduce((total, insuredType) => {
-  const ageBand = selectedAgeBands[insuredType];
-  const sumAssured = familyProviderSelectedSumAssured[insuredType];
-  const period = familyProviderSelectedPeriods[insuredType];
-  
-  if (ageBand && sumAssured && period) {
-    const amount = getAmount(monthlyProviderBenefitData, insuredType, ageBand, `${sumAssured}x${period}`);
-    return total + amount;
+
+
+
+const calculateTotalFamilyProviderPremium = () => {
+  let totalPremium = 0;
+
+  const mainLifeInsuredSumAssured = familyProviderSelectedSumAssured['mainLifeInsured'];
+  const mainLifeInsuredPeriod = familyProviderSelectedPeriods['mainLifeInsured'];
+  const mainLifeInsuredAmount = getAmount(
+    monthlyProviderBenefitData,
+    'mainLifeInsured',
+    selectedAgeBands['mainLifeInsured'],
+    `${mainLifeInsuredSumAssured}x${mainLifeInsuredPeriod}`
+  );
+
+  const addAmountIfValid = (insuredType, sumAssured, period) => {
+    if (sumAssured && period) {
+      const ageBand = selectedAgeBands[insuredType];
+      const amount = getAmount(monthlyProviderBenefitData, insuredType, ageBand, `${sumAssured}x${period}`);
+      if (amount && parseFloat(amount) <= parseFloat(mainLifeInsuredAmount)) {
+        totalPremium += parseFloat(amount);
+      }
+    }
+  };
+
+  selectedMonthlyProviderInsuredTypes.forEach((insuredType) => {
+    if (selectedFuneralInsuredTypes.includes(insuredType) && insuredType !== 'mainLifeInsured') {
+      const sumAssured = familyProviderSelectedSumAssured[insuredType];
+      const period = familyProviderSelectedPeriods[insuredType];
+      addAmountIfValid(insuredType, sumAssured, period);
+    }
+  });
+
+  // Ensure mainLifeInsured is included in the total if it's selected
+  if (selectedFuneralInsuredTypes.includes('mainLifeInsured')) {
+    totalPremium += parseFloat(mainLifeInsuredAmount);
   }
-  
-  return total;
-}, 0);
 
+  setTotalFamilyProviderPremium(totalPremium);
+};
+
+useEffect(() => {
+  calculateTotalFamilyProviderPremium();
+}, [
+  selectedMonthlyProviderInsuredTypes,
+  selectedAgeBands,
+  familyProviderSelectedSumAssured,
+  familyProviderSelectedPeriods,
+  selectedFuneralInsuredTypes, // New line
+]);
+
+
+const calculateTotalPremium = (data, selectedInsuredTypes) => {
+  let totalPremium = 0;
+
+  const mainLifeInsuredSumAssured = lifeSelectedSumAssured['mainLifeInsured'];
+  const mainLifeInsuredAmount = getAmount(
+    data,
+    'mainLifeInsured',
+    selectedAgeBands['mainLifeInsured'],
+    mainLifeInsuredSumAssured
+  );
+
+  const addAmountIfValid = (insuredType, sumAssured) => {
+    if (sumAssured) {
+      const ageBand = selectedAgeBands[insuredType];
+      const amount = getAmount(data, insuredType, ageBand, sumAssured);
+      if (amount && parseFloat(amount) <= parseFloat(mainLifeInsuredAmount)) {
+        totalPremium += parseFloat(amount);
+      }
+    }
+  };
+
+  selectedInsuredTypes.forEach((insuredType) => {
+    if (selectedFuneralInsuredTypes.includes(insuredType) && insuredType !== 'mainLifeInsured') {
+      const sumAssured = lifeSelectedSumAssured[insuredType];
+      addAmountIfValid(insuredType, sumAssured);
+    }
+  });
+
+  // Ensure mainLifeInsured is included in the total if it's selected
+  if (selectedFuneralInsuredTypes.includes('mainLifeInsured')) {
+    totalPremium += parseFloat(mainLifeInsuredAmount);
+  }
+
+  return totalPremium;
+};
 
 const totalLifeCoverPremium = calculateTotalPremium(lifeCoverBenefitData, selectedLifeCoverTypes);
+
+useEffect(() => {
+  const total = calculateTotalPremium(lifeCoverBenefitData, selectedLifeCoverTypes);
+  // Set the total premium to state if needed, e.g., setTotalLifeCoverPremium(total);
+}, [
+  lifeCoverBenefitData,
+  selectedLifeCoverTypes,
+  selectedAgeBands,
+  lifeSelectedSumAssured,
+  selectedFuneralInsuredTypes, // New line
+]);
+
 
 useEffect(() => {
   let total = totalFuneralPremium + totalTombstonePremium + totalCowPremium + totalFamilyProviderPremium;
@@ -1648,109 +1876,141 @@ const calculateTotalSumAssured = () => {
   setTotalSumAssured(totalMainLife + totalPartner);
 };
 
-
-// Ensure to call calculateTotalSumAssured in useEffect
 useEffect(() => {
   calculateTotalSumAssured();
 }, [selectedFuneralSumAssured, selectedTombstoneSumAssured, selectedCowSumAssured, familyProviderSelectedSumAssured, familyProviderSelectedPeriods]);
 
 
 
-const calculateTotalSumAssuredTwo = () => {
-  let total = 0;
 
-  Object.keys(lifeSelectedSumAssured).forEach((key) => {
-    total += parseFloat(lifeSelectedSumAssured[key] || 0);
-  });
-
-  Object.keys(deathIncomeSelectedSumAssured).forEach((insuredType) => {
-    const sumAssured = parseFloat(deathIncomeSelectedSumAssured[insuredType] || 0);
-    const period = parseFloat(deathIncomeSelectedPeriods[insuredType] || 0);
-    total += sumAssured * period;
-  });
-
-  if (total > 200000) {
-    setErrorMessageTwo('The total cover for life and death benefit should not exceed M200000.');
-    setSuccessMessage('');
-    setModalVisible(true);
-  } else {
-    if (errorMessageTwo) {
-      setSuccessMessage('Cover limit successfully resolved');
-      setModalVisible(true);
-    }
-    setErrorMessageTwo('');
-  }
-  
-  setTotalSumAssuredTwo(total);
-};
-
-
-useEffect(() => {
-  calculateTotalSumAssuredTwo();
-}, [deathIncomeSelectedSumAssured, lifeSelectedSumAssured]);
-useEffect(() => {
-  calculateTotalSumAssuredTwo();
-}, [deathIncomeSelectedPeriods, deathIncomeSelectedSumAssured]);
 
 
 const calculateTotalSumAssuredThree = () => {
-  let total = 0;
+  let totalMainLife = 0;
+  let totalPartner = 0;
 
+  // Calculate totals for mainLifeInsured
   Object.keys(selectedFuneralSumAssured).forEach((key) => {
-    total += parseFloat(selectedFuneralSumAssured[key] || 0);
+    if (key === 'mainLifeInsured') {
+      totalMainLife += parseFloat(selectedFuneralSumAssured[key] || 0);
+    } else if (key === 'partner') {
+      totalPartner += parseFloat(selectedFuneralSumAssured[key] || 0);
+    }
   });
+
   Object.keys(selectedTombstoneSumAssured).forEach((key) => {
-    total += parseFloat(selectedTombstoneSumAssured[key] || 0);
+    if (key === 'mainLifeInsured') {
+      totalMainLife += parseFloat(selectedTombstoneSumAssured[key] || 0);
+    } else if (key === 'partner') {
+      totalPartner += parseFloat(selectedTombstoneSumAssured[key] || 0);
+    }
   });
+
   Object.keys(selectedCowSumAssured).forEach((key) => {
-    total += parseFloat(selectedCowSumAssured[key] || 0);
+    if (key === 'mainLifeInsured') {
+      totalMainLife += parseFloat(selectedCowSumAssured[key] || 0);
+    } else if (key === 'partner') {
+      totalPartner += parseFloat(selectedCowSumAssured[key] || 0);
+    }
   });
+
   Object.keys(familyProviderSelectedSumAssured).forEach((insuredType) => {
     const sumAssured = parseFloat(familyProviderSelectedSumAssured[insuredType] || 0);
     const period = parseFloat(familyProviderSelectedPeriods[insuredType] || 0);
-    total += sumAssured * period;
+    if (insuredType === 'mainLifeInsured') {
+      totalMainLife += sumAssured * period;
+    } else if (insuredType === 'partner') {
+      totalPartner += sumAssured * period;
+    }
   });
+
   Object.keys(lifeSelectedSumAssured).forEach((key) => {
-    total += parseFloat(lifeSelectedSumAssured[key] || 0);
+    if (key === 'mainLifeInsured') {
+      totalMainLife += parseFloat(lifeSelectedSumAssured[key] || 0);
+    } else if (key === 'partner') {
+      totalPartner += parseFloat(lifeSelectedSumAssured[key] || 0);
+    }
   });
+
   Object.keys(deathIncomeSelectedSumAssured).forEach((insuredType) => {
     const sumAssured = parseFloat(deathIncomeSelectedSumAssured[insuredType] || 0);
     const period = parseFloat(deathIncomeSelectedPeriods[insuredType] || 0);
-    total += sumAssured * period;
+    if (insuredType === 'mainLifeInsured') {
+      totalMainLife += sumAssured * period;
+    } else if (insuredType === 'partner') {
+      totalPartner += sumAssured * period;
+    }
   });
 
-  if (total > 250000) {
-    setErrorMessageThree('The total policy cover should not exceed M250000.');
-    setSuccessMessage('');
+  // Error handling
+  const errors = [];
+  const successes = [];
+
+  if (totalMainLife > 250000) {
+    errors.push('Main Life Insured total policy cover should not exceed M250000.');
+  }
+  if (totalPartner > 250000) {
+    errors.push('Partner total policy cover should not exceed M250000.');
+  }
+
+  if (errors.length > 0) {
+    setErrorMessageThree(errors);
+    setSuccessMessageThree([]);
+    setHadErrorTwo(true);
     setModalVisible(true);
   } else {
-    if (errorMessageThree) {
-      setSuccessMessage('Sum assured limit successfully resolved');
+    if (hadErrorTwo) {
+      successes.push('Sum assured limit successfully resolved');
       setModalVisible(true);
     }
-    setErrorMessageThree('');
+    setErrorMessageThree([]);
+    setSuccessMessageThree(successes);
+    setHadErrorTwo(false);
   }
+
+  // Set the total sum assured for mainLife and partner
+  setTotalSumAssuredThreeMainLife(totalMainLife);
+  setTotalSumAssuredThreePartner(totalPartner);
   
-  setTotalSumAssuredThree(total);
 };
+
 useEffect(() => {
   calculateTotalSumAssuredThree();
 }, [selectedFuneralSumAssured, selectedTombstoneSumAssured, selectedCowSumAssured, familyProviderSelectedSumAssured, familyProviderSelectedPeriods, lifeSelectedSumAssured, deathIncomeSelectedSumAssured, deathIncomeSelectedPeriods]);
 
 
-
-
-const getButtonStyle = () => {
+const getCombinedButtonStyle = () => {
   const mainLifeCondition = totalSumAssuredMainLife > 75000 && totalSumAssuredMainLife < 200000;
   const partnerCondition = totalSumAssuredPartner > 75000 && totalSumAssuredPartner < 200000;
 
-  return (mainLifeCondition || partnerCondition) ? [styles.button, styles.buttonError] : styles.button;
+  if (mainLifeCondition || partnerCondition) {
+    return [styles.button, styles.buttonError];
+  }
+
+  const mainLifeConditionThree = totalSumAssuredThreeMainLife > 250000;
+  const partnerConditionThree = totalSumAssuredThreePartner > 250000;
+
+  if (mainLifeConditionThree || partnerConditionThree) {
+    return [styles.button, styles.buttonError];
+  }
+
+  return styles.button;
+};
+
+const getCombinedButtonStyleTwo = () => {
+  
+  const mainLifeConditionThree = totalSumAssuredThreeMainLife > 250000;
+  const partnerConditionThree = totalSumAssuredThreePartner > 250000;
+
+  if (mainLifeConditionThree || partnerConditionThree) {
+    return [styles.button, styles.buttonError];
+  }
+
+  return styles.button;
 };
 
 
-const getButtonStyleTwo = () => {
-  return totalSumAssuredTwo > 200000 ? [styles.button, styles.buttonError] : styles.button;
-};
+
 
 
   return (
@@ -1763,11 +2023,13 @@ const getButtonStyleTwo = () => {
       <View style={styles.wrapper}>
  
       <TouchableOpacity
-  style={getButtonStyle()}
+   style={getCombinedButtonStyle ()}
   onPress={() => setShowFuneralBenefitPicker(!showFuneralBenefitPicker)}
 >
   <Text style={styles.buttonText}>Funeral Benefit</Text>
   { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalFuneralPremium.toFixed(2)}</Text>)}
   <Icon
@@ -1796,6 +2058,7 @@ const getButtonStyleTwo = () => {
       <RadioButton
         value={insuredType}
         status={selectedFuneralInsuredTypes.includes(insuredType) ? 'checked' : 'unchecked'}
+
         onPress={() => handleRadioButtonPress('funeral', insuredType)}
       />
       <Text style={styles.radioLabel}>
@@ -2087,7 +2350,7 @@ const getButtonStyleTwo = () => {
         </View>
       ))}
     </View>
-    <View style={styles.fixedAmountSection}>
+    <View style={styles.radioLabelTotal}>
     {
   errorMessage.length > 0 ? (
     <View>
@@ -2095,13 +2358,19 @@ const getButtonStyleTwo = () => {
         <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-  ) : successMessage.length > 0 ? (
+  ):errorMessageThree.length > 0 ? (
+    <View>
+      {errorMessageThree.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
     <View>
       {successMessage.map((message, index) => (
         <Text key={index} style={styles.successText}>{message}</Text>
       ))}
     </View>
-  ) : (
+  ): (
     <>
       <Text style={styles.label}>TOTAL FUNERAL BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalFuneralPremium.toFixed(2)}</Text>
@@ -2114,9 +2383,11 @@ const getButtonStyleTwo = () => {
 )}
 
   
-<TouchableOpacity style={getButtonStyle()} onPress={() => setShowTombstoneBenefitPicker(!showTombstoneBenefitPicker)}>
+<TouchableOpacity style={getCombinedButtonStyle ()} onPress={() => setShowTombstoneBenefitPicker(!showTombstoneBenefitPicker)}>
   <Text style={styles.buttonText}>Tombstone Benefit</Text>
   { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalTombstonePremium.toFixed(2)}</Text>)}
   <Icon
@@ -2131,6 +2402,7 @@ const getButtonStyleTwo = () => {
   <View style={styles.container}>
     <View style={styles.column}>
       {Object.keys(tombstoneBenefitData).map((insuredType) => (
+        selectedFuneralInsuredTypes.includes(insuredType) && (
         <View key={insuredType} 
           style={insuredType === 'parents' || insuredType === 'extendedFamilyMembers' ? styles.radioContainerColumn : styles.radioContainer} >
           <RadioButton
@@ -2302,12 +2574,14 @@ const getButtonStyleTwo = () => {
                 <Text style={styles.addMoreText}>Click to add(+) Extended Family Member</Text>
               </TouchableOpacity>
               )}
-            </View>
-          )}
-        </View>
+              </View>
+            )}
+          </View>
+        )
       ))}
     </View>
-    <View style={styles.fixedAmountSection}>
+    
+    <View style={styles.radioLabelTotal}>
     {
   errorMessage.length > 0 ? (
     <View>
@@ -2315,7 +2589,13 @@ const getButtonStyleTwo = () => {
         <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-  ) : successMessage.length > 0 ? (
+  ):errorMessageThree.length > 0 ? (
+    <View>
+      {errorMessageThree.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
     <View>
       {successMessage.map((message, index) => (
         <Text key={index} style={styles.successText}>{message}</Text>
@@ -2323,18 +2603,21 @@ const getButtonStyleTwo = () => {
     </View>
   ) : (
     <>
+    
       <Text style={styles.label}>TOTAL TOMBSTONE BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalTombstonePremium.toFixed(2)}</Text>
-    </>
+      </>
   )}
 </View>
   </View>
 )}
 
 
-<TouchableOpacity style={getButtonStyle()} onPress={() => setShowCowBenefitPicker(!showCowBenefitPicker)}>
+<TouchableOpacity style={getCombinedButtonStyle ()} onPress={() => setShowCowBenefitPicker(!showCowBenefitPicker)}>
   <Text style={styles.buttonText}>Cow Benefit</Text>
  { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ) : (<Text style={styles.totalAmountTextButton}>{'M'}{totalCowPremium.toFixed(2)}</Text>)}
   <Icon
@@ -2349,6 +2632,7 @@ const getButtonStyleTwo = () => {
   <View style={styles.container}>
     <View style={styles.column}>
       {Object.keys(cowBenefitData).map((insuredType) => (
+        selectedFuneralInsuredTypes.includes(insuredType) && (
         <View key={insuredType} style={insuredType === 'parents' || insuredType === 'extendedFamilyMembers' ? styles.radioContainerColumn : styles.radioContainer}>
           <RadioButton
             value={insuredType}
@@ -2366,7 +2650,7 @@ const getButtonStyleTwo = () => {
                 selectedValue={selectedAgeBands[insuredType]}
                 style={styles.picker}
                 onValueChange={(value) => handleAgeBandChange('cow', insuredType, value)}
-                enabled={insuredType !== 'mainLifeInsured' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers'}
+                enabled={insuredType !== 'mainLifeInsured' && insuredType !== 'partner' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers'}
               >
                 <Picker.Item label="Age Band" value="" color="purple"/>
                 {getAgeBands(cowBenefitData, insuredType).map((band) => (
@@ -2452,7 +2736,7 @@ const getButtonStyleTwo = () => {
                   )}
                 </View>
               ))}
-              {parentsCount < 4 && (
+              {parentsCount < 3 && (
                 <TouchableOpacity onPress={() => setParentsCount(parentsCount + 1)}>
                   <Text style={styles.addMoreText}>Click to add(+) Parent</Text>
                 </TouchableOpacity>
@@ -2519,12 +2803,13 @@ const getButtonStyleTwo = () => {
                 <Text style={styles.addMoreText}>Click to add(+) Extended Family Member</Text>
               </TouchableOpacity>
               )}
-            </View>
-          )}
-        </View>
+              </View>
+            )}
+          </View>
+        )
       ))}
     </View>
-    <View style={styles.fixedAmountSection}>
+    <View style={styles.radioLabelTotal}>
     {
   errorMessage.length > 0 ? (
     <View>
@@ -2532,7 +2817,13 @@ const getButtonStyleTwo = () => {
         <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-  ) : successMessage.length > 0 ? (
+  ): errorMessageThree.length > 0 ? (
+    <View>
+      {errorMessageThree.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
     <View>
       {successMessage.map((message, index) => (
         <Text key={index} style={styles.successText}>{message}</Text>
@@ -2550,11 +2841,13 @@ const getButtonStyleTwo = () => {
 
 
 <TouchableOpacity
-  style={getButtonStyle()}
+  style={getCombinedButtonStyle ()}
   onPress={() => setShowFamilyProviderBenefitPicker(!showFamilyProviderBenefitPicker)}
 >
   <Text style={styles.buttonText}>Monthly Provider Benefit</Text>
   { errorMessage.length > 0 ? (
+    <Text style={styles.totalAmountTextButton}>{''}</Text>
+  ): errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ) : (<Text style={styles.totalAmountTextButton}>{'M'}{totalFamilyProviderPremium.toFixed(2)}</Text>)}
   <Icon
@@ -2569,6 +2862,7 @@ const getButtonStyleTwo = () => {
   <View style={styles.container}>
     <View style={styles.column}>
       {Object.keys(monthlyProviderBenefitData).map((insuredType) => (
+        selectedFuneralInsuredTypes.includes(insuredType) && (
         <View key={insuredType} style={styles.row}>
           <RadioButton
             value={insuredType}
@@ -2581,74 +2875,119 @@ const getButtonStyleTwo = () => {
               : insuredTypeLongNames[insuredType]}
           </Text>
           {selectedMonthlyProviderInsuredTypes.includes(insuredType) && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedAgeBands[insuredType]}
-                style={styles.picker}
-                onValueChange={(value) => handleAgeBandChange(insuredType, value)}
-                enabled={insuredType !== 'mainLifeInsured' && insuredType !== 'partner' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers' && insuredType !== 'children' && insuredType !== 'additionalChildren' && insuredType !== 'extendedFamilyChildren' && insuredType !== 'parents' && insuredType !== 'extendedFamilyMembers'}
-              >
-                <Picker.Item label="Age Band" value="" color="purple" />
-                {getAgeBands(monthlyProviderBenefitData, insuredType).map((band) => (
-                  <Picker.Item key={band} label={band} value={band} color="purple" />
-                ))}
-              </Picker>
-              <Picker
-                selectedValue={familyProviderSelectedSumAssured[insuredType]}
-                style={styles.picker}
-                onValueChange={(value) =>
-                  setFamilyProviderSelectedSumAssured((prevSumAssured) => ({
-                    ...prevSumAssured,
-                    [insuredType]: value,
-                  }))
-                }
-              >
-                <Picker.Item label="Sum Assured" value="" color="purple" />
-                {getSumAssuredAmounts(
-                  monthlyProviderBenefitData,
-                  insuredType,
-                  selectedAgeBands[insuredType]
-                ).map((amount) => (
-                  <Picker.Item key={amount} label={amount} value={amount} color="purple" />
-                ))}
-              </Picker>
-              <Picker
-                selectedValue={familyProviderSelectedPeriods[insuredType]}
-                style={styles.picker}
-                onValueChange={(value) =>
-                  setFamilyProviderSelectedPeriods((prevPeriods) => ({
-                    ...prevPeriods,
-                    [insuredType]: value,
-                  }))
-                }
-              >
-                <Picker.Item label="Period" value="" color="purple" />
-                {getPeriodOptions(
-                  monthlyProviderBenefitData,
-                  insuredType,
-                  selectedAgeBands[insuredType],
-                  familyProviderSelectedSumAssured[insuredType]
-                ).map((period) => (
-                  <Picker.Item key={period} label={period} value={period} color="purple" />
-                ))}
-              </Picker>
-              {familyProviderSelectedPeriods[insuredType] && (
-                <Text style={styles.amountText}>
-                  {' = M'}
-                  {getAmount(
-                    monthlyProviderBenefitData,
-                    insuredType,
-                    selectedAgeBands[insuredType],
-                    `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
-                  ).toFixed(2)}
-                </Text>
-              )}
-            </View>
-          )}
+  <View style={styles.pickerContainer}>
+    <Picker
+      selectedValue={selectedAgeBands[insuredType]}
+      style={styles.picker}
+      onValueChange={(value) => handleAgeBandChange(insuredType, value)}
+      enabled={
+        insuredType !== 'mainLifeInsured' &&
+        insuredType !== 'partner' &&
+        insuredType !== 'children' &&
+        insuredType !== 'additionalChildren' &&
+        insuredType !== 'extendedFamilyChildren' &&
+        insuredType !== 'parents' &&
+        insuredType !== 'extendedFamilyMembers'
+      }
+    >
+      <Picker.Item label="Age Band" value="" color="purple" />
+      {getAgeBands(monthlyProviderBenefitData, insuredType).map((band) => (
+        <Picker.Item key={band} label={band} value={band} color="purple" />
+      ))}
+    </Picker>
+    <Picker
+      selectedValue={familyProviderSelectedSumAssured[insuredType]}
+      style={styles.picker}
+      onValueChange={(value) =>
+        setFamilyProviderSelectedSumAssured((prevSumAssured) => ({
+          ...prevSumAssured,
+          [insuredType]: value,
+        }))
+      }
+    >
+      <Picker.Item label="Sum Assured" value="" color="purple" />
+      {getSumAssuredAmounts(
+        monthlyProviderBenefitData,
+        insuredType,
+        selectedAgeBands[insuredType]
+      ).map((amount) => (
+        <Picker.Item key={amount} label={amount} value={amount} color="purple" />
+      ))}
+    </Picker>
+    <Picker
+      selectedValue={familyProviderSelectedPeriods[insuredType]}
+      style={styles.picker}
+      onValueChange={(value) =>
+        setFamilyProviderSelectedPeriods((prevPeriods) => ({
+          ...prevPeriods,
+          [insuredType]: value,
+        }))
+      }
+    >
+      <Picker.Item label="Period" value="" color="purple" />
+      {getPeriodOptions(
+        monthlyProviderBenefitData,
+        insuredType,
+        selectedAgeBands[insuredType],
+        familyProviderSelectedSumAssured[insuredType]
+      ).map((period) => (
+        <Picker.Item key={period} label={period} value={period} color="purple" />
+      ))}
+    </Picker>
+
+    {/* Cover Amount Display */}
+    <View style={styles.picker}>
+  <Text style={styles.coverAmountText}>
+    {familyProviderSelectedSumAssured[insuredType] && familyProviderSelectedPeriods[insuredType]
+      ? `Cover Amount: M${parseFloat(familyProviderSelectedSumAssured[insuredType]) * parseFloat(familyProviderSelectedPeriods[insuredType])}`
+      : 'Cover Amount'}
+  </Text>
+</View>
+
+
+{familyProviderSelectedPeriods[insuredType] && familyProviderSelectedSumAssured[insuredType] && (
+  insuredType === 'mainLifeInsured' ? (
+    <Text style={styles.amountText}>
+      {' = M'}
+      {getAmount(
+        monthlyProviderBenefitData,
+        insuredType,
+        selectedAgeBands[insuredType],
+        `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
+      ).toFixed(2)}
+    </Text>
+  ) : (
+    parseFloat(familyProviderSelectedSumAssured['partner']) * parseFloat(familyProviderSelectedPeriods['partner']) <=
+    parseFloat(familyProviderSelectedSumAssured['mainLifeInsured']) * parseFloat(familyProviderSelectedPeriods['mainLifeInsured']) ? (
+      <Text style={styles.amountText}>
+        {' = M'}
+        {getAmount(
+          monthlyProviderBenefitData,
+          insuredType,
+          selectedAgeBands[insuredType],
+          `${familyProviderSelectedSumAssured[insuredType]}x${familyProviderSelectedPeriods[insuredType]}`
+        ).toFixed(2)}
+      </Text>
+    ) : (
+      insuredType === 'partner' && (
+        <View style={styles.errorTextContainer}>
+          <Text style={styles.errorText}>Partner's Benefit cannot exceed </Text>
+          <Text style={styles.errorText}>MLI's Benefit</Text>
         </View>
+      )
+    )
+  )
+)}
+
+
+  </View>
+)}
+
+          </View>
+        )
       ))}
     </View>
-    <View style={styles.fixedAmountSection}>
+    <View style={styles.radioLabelTotal}>
     {
   errorMessage.length > 0 ? (
     <View>
@@ -2656,7 +2995,13 @@ const getButtonStyleTwo = () => {
         <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-  ) : successMessage.length > 0 ? (
+  ): errorMessageThree.length > 0 ? (
+    <View>
+      {errorMessageThree.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
     <View>
       {successMessage.map((message, index) => (
         <Text key={index} style={styles.successText}>{message}</Text>
@@ -2676,11 +3021,11 @@ const getButtonStyleTwo = () => {
 selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
 <>
 <TouchableOpacity
-style={getButtonStyleTwo()}
+style={getCombinedButtonStyleTwo()}
 onPress={() => setShowLifeCoverBenefitPicker(!showLifeCoverBenefitPicker)}
 >
 <Text style={styles.buttonText}>Life Cover Benefit</Text>
-{errorMessageTwo ? (
+{errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalLifeCoverPremium.toFixed(2)}</Text>)}
 <Icon
@@ -2695,6 +3040,7 @@ style={styles.icon} // Style for the icon
   <View style={styles.container}>
     <View style={styles.column}>
       {Object.keys(lifeCoverBenefitData).map((insuredType) => (
+        selectedFuneralInsuredTypes.includes(insuredType) && (
         <View key={insuredType} style={styles.row}>
           <RadioButton
             value={insuredType}
@@ -2739,6 +3085,7 @@ style={styles.icon} // Style for the icon
               ))}
             </Picker>
             {lifeSelectedSumAssured[insuredType] && (
+                insuredType === 'mainLifeInsured' ? (  
               <Text style={styles.amountText}>
                 {' = M'}
                 {getAmount(
@@ -2748,17 +3095,47 @@ style={styles.icon} // Style for the icon
                   lifeSelectedSumAssured[insuredType]
                 ).toFixed(2)}
               </Text>
-            )}
-          </View>
-          
+           ) : (
+            parseFloat(lifeSelectedSumAssured['partner']) <= parseFloat(lifeSelectedSumAssured['mainLifeInsured']) ? (
+              <Text style={styles.amountText}>
+              {' = M'}
+              {getAmount(
+                lifeCoverBenefitData,
+                insuredType,
+                selectedAgeBands[insuredType],
+                lifeSelectedSumAssured[insuredType]
+              ).toFixed(2)}
+            </Text>
+         ) : (
+          insuredType === 'partner' && (
+            <View style={styles.errorTextContainer}>
+              <Text style={styles.errorText}>Partner's Benefit cannot exceed </Text>
+              <Text style={styles.errorText}>MLI's Benefit</Text>
+            </View>
+          )
+         )
+          )
+        )}
+            </View>
           )}
         </View>
-      ))}
+      )
+    ))}
     </View>
-    <View style={styles.fixedAmountSection}>
-  {errorMessageTwo ? (
-    <Text style={styles.errorText}>{errorMessageTwo}</Text>
-  ) : (
+    <View style={styles.radioLabelTotal}>
+  {errorMessageThree.length > 0 ? (
+  <View>
+    {errorMessageThree.map((message, index) => (
+      <Text key={index} style={styles.errorText}>{message}</Text>
+    ))}
+  </View>
+) :(Array.isArray(successMessageTwo) && successMessageTwo.length > 0) ? (
+  <View>
+    {successMessageTwo.map((message, index) => (
+      <Text key={index} style={styles.successText}>{message}</Text>
+    ))}
+  </View>
+) : (
     <>
       <Text style={styles.label}>TOTAL LIFE COVER BENEFIT PREMIUM</Text>
       <Text style={styles.totalAmountText}>{' = M'}{totalLifeCoverPremium.toFixed(2)}</Text>
@@ -2774,11 +3151,11 @@ style={styles.icon} // Style for the icon
 selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
   <>
     <TouchableOpacity
-      style={getButtonStyleTwo()}
+      style={getCombinedButtonStyleTwo()}
       onPress={() => setShowDeathIncomeBenefitPicker(!showDeathIncomeBenefitPicker)}
     >
       <Text style={styles.buttonText}>Death Income Benefit</Text>
-      {errorMessageTwo ? (
+      {errorMessageThree.length > 0 ? (
     <Text style={styles.totalAmountTextButton}>{''}</Text>
   ): (<Text style={styles.totalAmountTextButton}>{'M'}{totalDeathIncomePremium.toFixed(2)}</Text>)}
       <Icon
@@ -2793,6 +3170,7 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
       <View style={styles.container}>
         <View style={styles.column}>
           {Object.keys(deathIncomeBenefitData).map((insuredType) => (
+            selectedFuneralInsuredTypes.includes(insuredType) && (
             <View key={insuredType} style={styles.row}>
               <RadioButton
                 value={insuredType}
@@ -2859,26 +3237,69 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
                         ))
                       : null}
                   </Picker>
-                  {deathIncomeSelectedPeriods[insuredType] && deathIncomeSelectedSumAssured[insuredType] && (
-                    <Text style={styles.amountText}>
-                      {' = M'}
-                      {getAmount(
-                        deathIncomeBenefitData,
-                        insuredType,
-                        selectedAgeBands[insuredType],
-                        `${deathIncomeSelectedSumAssured[insuredType]}x${deathIncomeSelectedPeriods[insuredType]}`
-                      ).toFixed(2)}
-                    </Text>
-                  )}
-                </View>
-              )}
-            </View>
+
+                  <View style={styles.picker}>
+  <Text style={styles.coverAmountText}>
+    {deathIncomeSelectedSumAssured[insuredType] && deathIncomeSelectedPeriods[insuredType]
+      ? `Cover Amount: M${parseFloat(deathIncomeSelectedSumAssured[insuredType]) * parseFloat(deathIncomeSelectedPeriods[insuredType])}`
+      : 'Cover Amount'}
+  </Text>
+</View>
+
+{deathIncomeSelectedPeriods[insuredType] && deathIncomeSelectedSumAssured[insuredType] && (
+  insuredType === 'mainLifeInsured' ? (
+    <Text style={styles.amountText}>
+      {' = M'}
+      {getAmount(
+        deathIncomeBenefitData,
+        insuredType,
+        selectedAgeBands[insuredType],
+        `${deathIncomeSelectedSumAssured[insuredType]}x${deathIncomeSelectedPeriods[insuredType]}`
+      ).toFixed(2)}
+    </Text>
+  ) : (
+    parseFloat(deathIncomeSelectedSumAssured['partner']) * parseFloat(deathIncomeSelectedPeriods['partner']) <=
+    parseFloat(deathIncomeSelectedSumAssured['mainLifeInsured']) * parseFloat(deathIncomeSelectedPeriods['mainLifeInsured']) ? (
+      <Text style={styles.amountText}>
+        {' = M'}
+        {getAmount(
+          deathIncomeBenefitData,
+          insuredType,
+          selectedAgeBands[insuredType],
+          `${deathIncomeSelectedSumAssured[insuredType]}x${deathIncomeSelectedPeriods[insuredType]}`
+        ).toFixed(2)}
+      </Text>
+    ) : (
+      insuredType === 'partner' && (
+        <View style={styles.errorTextContainer}>
+          <Text style={styles.errorText}>Partner's Benefit cannot exceed </Text>
+          <Text style={styles.errorText}>MLI's Benefit</Text>
+        </View>
+      )
+    )
+  )
+)}
+
+                  </View>
+                )}
+              </View>
+            )
           ))}
         </View>
-        <View style={styles.fixedAmountSection}>
-  {errorMessageTwo ? (
-    <Text style={styles.errorText}>{errorMessageTwo}</Text>
-  ) : (
+        <View style={styles.radioLabelTotal}>
+  {errorMessageThree.length > 0 ? (
+  <View>
+    {errorMessageThree.map((message, index) => (
+      <Text key={index} style={styles.errorText}>{message}</Text>
+    ))}
+  </View>
+) : (Array.isArray(successMessageTwo) && successMessageTwo.length > 0) ? (
+  <View>
+    {successMessageTwo.map((message, index) => (
+      <Text key={index} style={styles.successText}>{message}</Text>
+    ))}
+  </View>
+) : (
     <>
           <Text style={styles.label}>TOTAL DEATH INCOME BENEFIT PREMIUM</Text>
           <Text style={styles.totalAmountText}>{' = M'}{totalDeathIncomePremium.toFixed(2)}</Text>
@@ -2899,13 +3320,27 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
         <Text key={index} style={styles.errorText}>{message}</Text>
       ))}
     </View>
-  ) : errorMessageTwo ? (
-    <Text style={styles.errorTextTotal}>{errorMessageTwo}</Text>
-  ) : errorMessageThree ? (
-    <Text style={styles.errorTextTotal}>{errorMessageThree}</Text>
-  ) : successMessage.length > 0 ? (
+  ) : (Array.isArray(errorMessageThree) && errorMessageThree.length > 0) ? (
+    <View>
+      {errorMessageThree.map((message, index) => (
+        <Text key={index} style={styles.errorText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
     <View>
       {successMessage.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessageTwo) && successMessageTwo.length > 0) ? (
+    <View>
+      {successMessageTwo.map((message, index) => (
+        <Text key={index} style={styles.successText}>{message}</Text>
+      ))}
+    </View>
+  ) : (Array.isArray(successMessageThree) && successMessageThree.length > 0) ? (
+    <View>
+      {successMessageThree.map((message, index) => (
         <Text key={index} style={styles.successText}>{message}</Text>
       ))}
     </View>
@@ -2918,6 +3353,7 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
   )
 }
 </View>
+
 
     </View>
 
@@ -2933,6 +3369,8 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
   onRequestClose={() => {
     setModalVisible(false);
     setSuccessMessage([]);
+    setSuccessMessageTwo([]);
+    setSuccessMessageThree([]);
   }}
 >
   <View style={styles.modalOverlay}>
@@ -2943,9 +3381,27 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
             <Text key={index} style={styles.errorText}>{message}</Text>
           ))}
         </View>
-      ) : successMessage.length > 0 ? (
+      ) : (Array.isArray(errorMessageThree) && errorMessageThree.length > 0) ? (
+        <View>
+          {errorMessageThree.map((message, index) => (
+            <Text key={index} style={styles.errorText}>{message}</Text>
+          ))}
+        </View>
+      ) : (Array.isArray(successMessage) && successMessage.length > 0) ? (
         <View>
           {successMessage.map((message, index) => (
+            <Text key={index} style={styles.successText}>{message}</Text>
+          ))}
+        </View>
+      ) : (Array.isArray(successMessageTwo) && successMessageTwo.length > 0) ? (
+        <View>
+          {successMessageTwo.map((message, index) => (
+            <Text key={index} style={styles.successText}>{message}</Text>
+          ))}
+        </View>
+      ) : (Array.isArray(successMessageThree) && successMessageThree.length > 0) ? (
+        <View>
+          {successMessageThree.map((message, index) => (
             <Text key={index} style={styles.successText}>{message}</Text>
           ))}
         </View>
@@ -2954,6 +3410,8 @@ selectedFuneralSumAssured['mainLifeInsured'] === '50000' && (
         onPress={() => {
           setModalVisible(false);
           setSuccessMessage([]);
+          setSuccessMessageTwo([]);
+          setSuccessMessageThree([]);
         }}
         style={styles.closeButton}
       >
@@ -3088,6 +3546,11 @@ const styles = StyleSheet.create({
     color: 'purple',
     marginLeft: 10,
   },
+  coverAmountText: {
+    fontSize: 14,
+    color: 'purple',
+    marginLeft: 10,
+  },
   totalAmountText: {
     fontSize: 16,
     color: 'purple',
@@ -3119,6 +3582,13 @@ const styles = StyleSheet.create({
     color: 'purple',
     marginLeft: 10,
     fontSize: 16,
+  },
+  radioLabelTotal: {
+    color: 'purple',
+    marginLeft: 10,
+    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center', 
   },
   buttonError: {
     backgroundColor: 'red',
