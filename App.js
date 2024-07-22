@@ -62,8 +62,6 @@ const App = () => {
   const [totalSumAssuredThreeMainLife, setTotalSumAssuredThreeMainLife] = useState(0);
   const [totalSumAssuredThreePartner, setTotalSumAssuredThreePartner] = useState(0);
 
-
-
   const [errorMessage, setErrorMessage] = useState('');
   
   const [errorMessageThree, setErrorMessageThree] = useState('');
@@ -1272,45 +1270,30 @@ const calculateTotalFuneralPremium = () => {
     }
   });
 
-  // Add premiums for additional children
-  for (let i = 0; i < additionalChildrenCount; i++) {
-    const insuredType = `additionalChildren_${i + 1}`;
-    if (selectedFuneralInsuredTypes.includes(insuredType)) {
-      if (selectedFuneralSumAssured[insuredType]) {
-        totalPremium += parseFloat(getAmount(funeralBenefitData, 'additionalChildren', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
+  const addPremiumsForDependentInsuredTypes = (insuredTypePrefix, count) => {
+    const baseSumAssured = selectedFuneralSumAssured[insuredTypePrefix];
+    for (let i = 0; i < count; i++) {
+      const insuredType = `${insuredTypePrefix}_${i + 1}`;
+      if (selectedFuneralInsuredTypes.includes(insuredType)) {
+        const sumAssured = selectedFuneralSumAssured[insuredType];
+        if (sumAssured && baseSumAssured !== 0) {
+          totalPremium += parseFloat(getAmount(funeralBenefitData, insuredTypePrefix, selectedAgeBands[insuredType], sumAssured).toFixed(2));
+        }
       }
     }
-  }
+  };
+
+  // Add premiums for additional children
+  addPremiumsForDependentInsuredTypes('additionalChildren', additionalChildrenCount);
 
   // Add premiums for parents
-  for (let i = 0; i < parentsCount; i++) {
-    const insuredType = `parents_${i + 1}`;
-    if (selectedFuneralInsuredTypes.includes(insuredType)) {
-      if (selectedFuneralSumAssured[insuredType]) {
-        totalPremium += parseFloat(getAmount(funeralBenefitData, 'parents', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
-      }
-    }
-  }
+  addPremiumsForDependentInsuredTypes('parents', parentsCount);
 
   // Add premiums for extended family children
-  for (let i = 0; i < extendedFamilyChildrenCount; i++) {
-    const insuredType = `extendedFamilyChildren_${i + 1}`;
-    if (selectedFuneralInsuredTypes.includes(insuredType)) {
-      if (selectedFuneralSumAssured[insuredType]) {
-        totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyChildren', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
-      }
-    }
-  }
+  addPremiumsForDependentInsuredTypes('extendedFamilyChildren', extendedFamilyChildrenCount);
 
   // Add premiums for extended family members
-  for (let i = 0; i < extendedFamilyMembersCount; i++) {
-    const insuredType = `extendedFamilyMembers_${i + 1}`;
-    if (selectedFuneralInsuredTypes.includes(insuredType)) {
-      if (selectedFuneralSumAssured[insuredType]) {
-        totalPremium += parseFloat(getAmount(funeralBenefitData, 'extendedFamilyMembers', selectedAgeBands[insuredType], selectedFuneralSumAssured[insuredType]).toFixed(2));
-      }
-    }
-  }
+  addPremiumsForDependentInsuredTypes('extendedFamilyMembers', extendedFamilyMembersCount);
 
   setTotalFuneralPremium(totalPremium);
 };
@@ -1326,7 +1309,6 @@ useEffect(() => {
   extendedFamilyChildrenCount,
   extendedFamilyMembersCount,
 ]);
-
 
 
 
@@ -1358,18 +1340,22 @@ const calculateTotalTombstonePremium = () => {
     }
   });
 
+  // Add premiums for parents
   for (let i = 0; i < parentsCount; i++) {
-    if (selectedFuneralInsuredTypes.includes(`parents_${i + 1}`)) {
-      if (selectedTombstoneSumAssured[`parents_${i + 1}`]) {
-        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedTombstoneSumAssured[`parents_${i + 1}`]).toFixed(2));
+    const insuredType = `parents_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType) && selectedTombstoneInsuredTypes.includes(insuredType)) {
+      if (selectedTombstoneSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'parents', selectedAgeBands[insuredType], selectedTombstoneSumAssured[insuredType]).toFixed(2));
       }
     }
   }
 
+  // Add premiums for extended family members
   for (let i = 0; i < extendedFamilyMembersCount; i++) {
-    if (selectedFuneralInsuredTypes.includes(`extendedFamilyMembers_${i + 1}`)) {
-      if (selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]) {
-        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedTombstoneSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
+    const insuredType = `extendedFamilyMembers_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType) && selectedTombstoneInsuredTypes.includes(insuredType)) {
+      if (selectedTombstoneSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(tombstoneBenefitData, 'extendedFamilyMembers', selectedAgeBands[insuredType], selectedTombstoneSumAssured[insuredType]).toFixed(2));
       }
     }
   }
@@ -1387,7 +1373,6 @@ useEffect(() => {
   parentsCount,
   extendedFamilyMembersCount,
 ]);
-
 
 
 
@@ -1418,18 +1403,22 @@ const calculateTotalCowPremium = () => {
     }
   });
 
+  // Add premiums for parents
   for (let i = 0; i < parentsCount; i++) {
-    if (selectedFuneralInsuredTypes.includes(`parents_${i + 1}`)) {
-      if (selectedCowSumAssured[`parents_${i + 1}`]) {
-        totalPremium += parseFloat(getAmount(cowBenefitData, 'parents', selectedAgeBands[`parents_${i + 1}`], selectedCowSumAssured[`parents_${i + 1}`]).toFixed(2));
+    const insuredType = `parents_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType) && selectedCowInsuredTypes.includes(insuredType)) {
+      if (selectedCowSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(cowBenefitData, 'parents', selectedAgeBands[insuredType], selectedCowSumAssured[insuredType]).toFixed(2));
       }
     }
   }
 
+  // Add premiums for extended family members
   for (let i = 0; i < extendedFamilyMembersCount; i++) {
-    if (selectedFuneralInsuredTypes.includes(`extendedFamilyMembers_${i + 1}`)) {
-      if (selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]) {
-        totalPremium += parseFloat(getAmount(cowBenefitData, 'extendedFamilyMembers', selectedAgeBands[`extendedFamilyMembers_${i + 1}`], selectedCowSumAssured[`extendedFamilyMembers_${i + 1}`]).toFixed(2));
+    const insuredType = `extendedFamilyMembers_${i + 1}`;
+    if (selectedFuneralInsuredTypes.includes(insuredType) && selectedCowInsuredTypes.includes(insuredType)) {
+      if (selectedCowSumAssured[insuredType]) {
+        totalPremium += parseFloat(getAmount(cowBenefitData, 'extendedFamilyMembers', selectedAgeBands[insuredType], selectedCowSumAssured[insuredType]).toFixed(2));
       }
     }
   }
@@ -1447,6 +1436,7 @@ useEffect(() => {
   parentsCount,
   extendedFamilyMembersCount,
 ]);
+
 
 
 
@@ -1588,34 +1578,52 @@ const handleRadioButtonPress = (benefitType, insuredType) => {
     }
     // Ensure 'mainLifeInsured' is always 'on' and cannot be toggled off
     if (insuredType === 'mainLifeInsured') {
-      
       setSelectedFuneralInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
     } else {
-      setSelectedFuneralInsuredTypes((prevSelected) => 
-        prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
-      );
+      setSelectedFuneralInsuredTypes((prevSelected) => {
+        const updatedSelected = prevSelected.includes(insuredType)
+          ? prevSelected.filter((type) => type !== insuredType)
+          : [...prevSelected, insuredType];
+          
+        // Check if the base insured type's amount is being zeroed out
+        if (!updatedSelected.includes(insuredType)) {
+          zeroOutDependentInsuredTypes('funeral', insuredType);
+          // Trigger reset for other benefits if applicable
+          zeroOutDependentInsuredTypes('tombstone', insuredType);
+          zeroOutDependentInsuredTypes('cow', insuredType);
+        }
+
+        return updatedSelected;
+      });
     }
   } else if (benefitType === 'tombstone') {
     if (insuredType === 'mainLifeInsured') {
-      
       setSelectedTombstoneInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
     } else {
       setSelectedTombstoneInsuredTypes((prevSelected) => 
         prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
       );
-    }
 
-    
+      // Check if the base insured type's amount is being zeroed out
+      if (!selectedTombstoneInsuredTypes.includes(insuredType)) {
+        zeroOutDependentInsuredTypes('tombstone', insuredType);
+      }
+    }
   } else if (benefitType === 'cow') {
     if (insuredType === 'mainLifeInsured') {
-      
       setSelectedCowInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
     } else {
-    setSelectedCowInsuredTypes((prevSelected) => 
-      prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
-    );
+      setSelectedCowInsuredTypes((prevSelected) => 
+        prevSelected.includes(insuredType) ? prevSelected.filter((type) => type !== insuredType) : [...prevSelected, insuredType]
+      );
+
+      // Check if the base insured type's amount is being zeroed out
+      if (!selectedCowInsuredTypes.includes(insuredType)) {
+        zeroOutDependentInsuredTypes('cow', insuredType);
+      }
+    }
   }
-  } else if (benefitType === 'familyProvider') {
+ else if (benefitType === 'familyProvider') {
     if (insuredType === 'mainLifeInsured') {
       
       setSelectedMonthlyProviderInsuredTypes((prevSelected) => [...prevSelected, insuredType]);
@@ -1650,6 +1658,55 @@ const handleRadioButtonPress = (benefitType, insuredType) => {
   }
 }
 };
+
+const zeroOutDependentInsuredTypes = (benefitType, baseInsuredType) => {
+  const dependentPrefixes = ['additionalChildren', 'parents', 'extendedFamilyChildren', 'extendedFamilyMembers'];
+
+  dependentPrefixes.forEach((prefix) => {
+    if (baseInsuredType.startsWith(prefix)) {
+      for (let i = 0; i < 10; i++) { // assuming a maximum of 10 dependents for each type
+        const insuredType = `${prefix}_${i + 1}`;
+        switch (benefitType) {
+          case 'funeral':
+            if (selectedFuneralInsuredTypes.includes(insuredType)) {
+              setSelectedFuneralInsuredTypes((prevSelected) => 
+                prevSelected.filter((type) => type !== insuredType)
+              );
+              setSelectedFuneralSumAssured((prevSumAssured) => ({
+                ...prevSumAssured,
+                [insuredType]: 0
+              }));
+            }
+            break;
+          case 'tombstone':
+            if (selectedTombstoneInsuredTypes.includes(insuredType)) {
+              setSelectedTombstoneInsuredTypes((prevSelected) => 
+                prevSelected.filter((type) => type !== insuredType)
+              );
+              setSelectedTombstoneSumAssured((prevSumAssured) => ({
+                ...prevSumAssured,
+                [insuredType]: ''
+              }));
+            }
+            break;
+          case 'cow':
+            if (selectedCowInsuredTypes.includes(insuredType)) {
+              setSelectedCowInsuredTypes((prevSelected) => 
+                prevSelected.filter((type) => type !== insuredType)
+              );
+              setSelectedCowSumAssured((prevSumAssured) => ({
+                ...prevSumAssured,
+                [insuredType]: ''
+              }));
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  })
+}
 
 
 
@@ -1883,8 +1940,6 @@ useEffect(() => {
 
 
 
-
-
 const calculateTotalSumAssuredThree = () => {
   let totalMainLife = 0;
   let totalPartner = 0;
@@ -2008,8 +2063,6 @@ const getCombinedButtonStyleTwo = () => {
 
   return styles.button;
 };
-
-
 
 
 
