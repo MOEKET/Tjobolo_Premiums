@@ -112,4 +112,9 @@
   color: #a228db;
 }
 
+.button.red {
+  background-color: red !important;
+}
+
+
 

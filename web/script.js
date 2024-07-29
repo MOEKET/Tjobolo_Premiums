@@ -30,12 +30,13 @@ const selectedAmounts = {
   deathIncome: {}, // Added for Death Income Benefit
 };
 
+
 function toggleBenefitPicker(type) {
   const picker = document.getElementById(`${type}BenefitPicker`);
   picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
 }
 
-function updateBenefitTotal(type) {
+function updateBenefitTotal(type, reset = false) {
   let total = 0;
   for (const insuredType in selectedAmounts[type]) {
     total += selectedAmounts[type][insuredType].amount;
@@ -43,24 +44,24 @@ function updateBenefitTotal(type) {
 
   if (type === 'funeral') {
     funeralBenefitTotal = total;
-    document.getElementById('funeralBenefitAmount').textContent = `M${funeralBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalFuneralBenefitPremium').textContent = `M${funeralBenefitTotal.toFixed(2)}`;
+    document.getElementById('funeralBenefitAmount').textContent = reset ? 'M0.00' : `M${funeralBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalFuneralBenefitPremium').textContent = reset ? 'M0.00' : `M${funeralBenefitTotal.toFixed(2)}`;
   } else if (type === 'tombstone') {
     tombstoneBenefitTotal = total;
-    document.getElementById('tombstoneBenefitAmount').textContent = `M${tombstoneBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalTombstoneBenefitPremium').textContent = `M${tombstoneBenefitTotal.toFixed(2)}`;
+    document.getElementById('tombstoneBenefitAmount').textContent = reset ? 'M0.00' : `M${tombstoneBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalTombstoneBenefitPremium').textContent = reset ? 'M0.00' : `M${tombstoneBenefitTotal.toFixed(2)}`;
   } else if (type === 'cow') {
     cowBenefitTotal = total;
-    document.getElementById('cowBenefitAmount').textContent = `M${cowBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalCowBenefitPremium').textContent = `M${cowBenefitTotal.toFixed(2)}`;
+    document.getElementById('cowBenefitAmount').textContent = reset ? 'M0.00' : `M${cowBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalCowBenefitPremium').textContent = reset ? 'M0.00' : `M${cowBenefitTotal.toFixed(2)}`;
   } else if (type === 'lifeCover') {
     lifeCoverBenefitTotal = total;
     document.getElementById('lifeCoverBenefitAmount').textContent = `M${lifeCoverBenefitTotal.toFixed(2)}`;
     document.getElementById('totalLifeCoverBenefitPremium').textContent = `M${lifeCoverBenefitTotal.toFixed(2)}`;
   } else if (type === 'monthlyProvider') {
     monthlyProviderBenefitTotal = total;
-    document.getElementById('monthlyProviderBenefitAmount').textContent = `M${monthlyProviderBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalMonthlyProviderBenefitPremium').textContent = `M${monthlyProviderBenefitTotal.toFixed(2)}`;
+    document.getElementById('monthlyProviderBenefitAmount').textContent = reset ? 'M0.00' : `M${monthlyProviderBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalMonthlyProviderBenefitPremium').textContent = reset ? 'M0.00' : `M${monthlyProviderBenefitTotal.toFixed(2)}`;
   } else if (type === 'deathIncome') { // Added for Death Income Benefit
     deathIncomeBenefitTotal = total;
     document.getElementById('deathIncomeBenefitAmount').textContent = `M${deathIncomeBenefitTotal.toFixed(2)}`;
@@ -70,8 +71,6 @@ function updateBenefitTotal(type) {
   // Recalculate the totals
   calculateTotals();
 }
-
-
 
 function createPicker(type, insuredType, data) {
   const container = document.createElement('div');
@@ -170,6 +169,7 @@ function createPicker(type, insuredType, data) {
   return container;
 }
 
+// Update the cover amount options for the picker
 function updateCoverAmountOptions(ageBand, coverAmountPicker, data, insuredType) {
   coverAmountPicker.innerHTML = '';
 
@@ -193,6 +193,7 @@ function updateCoverAmountOptions(ageBand, coverAmountPicker, data, insuredType)
   }
 }
 
+// Update the period options for the picker
 function updatePeriodOptions(periodPicker, data, insuredType, ageBand, coverAmount) {
   periodPicker.innerHTML = '';
 
@@ -218,19 +219,98 @@ function updatePeriodOptions(periodPicker, data, insuredType, ageBand, coverAmou
   }
 }
 
+
+function toggleTotalsSection(show) {
+  const totalsSection = document.getElementById('totals-section');
+  const errorSection = document.getElementById('error-section');
+
+  if (show) {
+    totalsSection.style.display = 'block';
+    errorSection.style.display = 'none';
+  } else {
+    totalsSection.style.display = 'none';
+    errorSection.style.display = 'block';
+  }
+}
+
 function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, period = null) {
   let amount = 0;
+  const combinedKey = period ? `${coverAmount}x${period}` : coverAmount;
+
   if (ageBand && coverAmount) {
-    const combinedKey = period ? `${coverAmount}x${period}` : coverAmount;
-    amount = data[insuredType][ageBand][combinedKey] || 0;
+    amount = data[insuredType]?.[ageBand]?.[combinedKey] || 0;
   }
 
-  // Update the selected amount for the current insured type
-  selectedAmounts[type][insuredType] = { amount };
+  // Ensure selectedAmounts[type] exists
+  if (!selectedAmounts[type]) {
+    selectedAmounts[type] = {};
+  }
 
-  // Update the total benefit amount
+  // Ensure selectedAmounts[type][insuredType] exists
+  if (!selectedAmounts[type][insuredType]) {
+    selectedAmounts[type][insuredType] = { amount: 0, coverAmount: '' };
+  }
+
+  // Update the selected amount and cover amount
+  selectedAmounts[type][insuredType].amount = amount;
+  selectedAmounts[type][insuredType].coverAmount = period ? coverAmount * period : coverAmount;
+
+  // Calculate the total cover amount for the insured type for relevant benefits
+  const relevantBenefits = ['funeral', 'tombstone', 'cow', 'monthlyProvider'];
+  let totalCoverAmount = 0;
+  for (const benefitType of relevantBenefits) {
+    if (selectedAmounts[benefitType] && selectedAmounts[benefitType][insuredType]) {
+      totalCoverAmount += parseFloat(selectedAmounts[benefitType][insuredType].coverAmount || 0);
+    }
+  }
+
+  const errorMessageElement = document.getElementById('mainLifeInsuredError');
+  if (totalCoverAmount > 75000) {
+    errorMessageElement.textContent = `Error: The total cover amount for ${insuredType} exceeds the maximum limit of 75,000.`;
+    errorMessageElement.style.color = 'red';
+
+    // Reset amount and cover amount for relevant benefits
+    relevantBenefits.forEach(benefitType => {
+      if (selectedAmounts[benefitType] && selectedAmounts[benefitType][insuredType]) {
+        selectedAmounts[benefitType][insuredType].amount = 0;
+        selectedAmounts[benefitType][insuredType].coverAmount = '';
+      }
+    });
+
+    toggleTotalsSection(false); // Hide totals section and show error message
+
+    // Turn buttons red and reset total benefit amount for relevant benefits
+    relevantBenefits.forEach(benefitType => {
+      const buttonElement = document.querySelector(`.button[onclick="toggleBenefitPicker('${benefitType}')"]`);
+      if (buttonElement) {
+        buttonElement.style.backgroundColor = 'red';
+      }
+      updateBenefitTotal(benefitType, true); // Reset total benefit amount
+    });
+  } else {
+    errorMessageElement.textContent = '';
+    toggleTotalsSection(true); // Show totals section and hide error message
+
+    // Reset buttons color and restore total benefit amount for relevant benefits
+    relevantBenefits.forEach(benefitType => {
+      const buttonElement = document.querySelector(`.button[onclick="toggleBenefitPicker('${benefitType}')"]`);
+      if (buttonElement) {
+        buttonElement.style.backgroundColor = ''; // Reset to original color
+      }
+      // Restore the total benefit amount
+      updateBenefitTotal(benefitType);
+    });
+  }
+
+  // Update the total benefit amount for the current type
   updateBenefitTotal(type);
 }
+
+
+
+
+
+
 
 // Function to calculate and update the total of all benefits
 function calculateTotals() {
@@ -275,7 +355,6 @@ benefitTypes.forEach(benefitType => {
     pickerContainer.appendChild(picker);
   });
 });
-
 
 // Initialize the total values on page load
 updateBenefitTotal('funeral');
