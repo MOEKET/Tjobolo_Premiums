@@ -307,11 +307,6 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
 }
 
 
-
-
-
-
-
 // Function to calculate and update the total of all benefits
 function calculateTotals() {
   const overallTotal = funeralBenefitTotal + tombstoneBenefitTotal + cowBenefitTotal + lifeCoverBenefitTotal + monthlyProviderBenefitTotal + deathIncomeBenefitTotal;
