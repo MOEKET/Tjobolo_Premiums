@@ -68,23 +68,27 @@
       </div>
     </div>
 
-    <!-- Monthly Provider Benefit Button -->
-    <div class="button" onclick="toggleBenefitPicker('monthlyProvider')">
-      <span class="buttonText">Monthly Provider Benefit</span>
-      <span id="monthlyProviderBenefitAmount" class="buttonText">M0.00</span>
-      <i class="fas fa-chevron-down"></i>
-    </div>
+   <!-- Monthly Provider Benefit Button -->
+<div class="button" onclick="toggleBenefitPicker('monthlyProvider')">
+  <span class="buttonText">Monthly Provider Benefit</span>
+  <span id="monthlyProviderBenefitAmount" class="buttonText">M0.00</span>
+  <i class="fas fa-chevron-down"></i>
+</div>
 
-    <!-- Monthly Provider Benefit Picker -->
-    <div id="monthlyProviderBenefitPicker" class="picker-container" style="display: none;">
-      <div class="column">
-        <!-- Dynamic content for monthly provider benefit insured types will go here -->
-      </div>
-      <div class="radioLabelTotal">
-        <span class="label">TOTAL MONTHLY PROVIDER BENEFIT PREMIUM =</span>
-        <span id="totalMonthlyProviderBenefitPremium" class="total-amount-text">= M0.00</span>
-      </div>
-    </div>
+<!-- Monthly Provider Benefit Picker -->
+<div id="monthlyProviderBenefitPicker" class="picker-container" style="display: none;">
+  <div class="column">
+    <!-- Dynamic content for monthly provider benefit insured types will go here -->
+  </div>
+  <div class="radioLabelTotal">
+    <span class="label">TOTAL MONTHLY PROVIDER BENEFIT PREMIUM =</span>
+    <span id="totalMonthlyProviderBenefitPremium" class="total-amount-text">= M0.00</span>
+  </div>
+  
+  <!-- Cover Amount Display for Monthly Provider -->
+  <div class="monthlyProviderCoverAmountDisplay">Cover Amount: M0.00</div>
+</div>
+
 
     <!-- Life Cover Benefit Button -->
     <div class="button" onclick="toggleBenefitPicker('lifeCover')">
@@ -105,23 +109,26 @@
     </div>
 
     <!-- Death Income Benefit Button -->
-    <div class="button" onclick="toggleBenefitPicker('deathIncome')">
-      <span class="buttonText">Death Income Benefit</span>
-      <span id="deathIncomeBenefitAmount" class="buttonText">M0.00</span>
-      <i class="fas fa-chevron-down"></i>
-    </div>
+<div class="button" onclick="toggleBenefitPicker('deathIncome')">
+  <span class="buttonText">Death Income Benefit</span>
+  <span id="deathIncomeBenefitAmount" class="buttonText">M0.00</span>
+  <i class="fas fa-chevron-down"></i>
+</div>
 
-    <!-- Death Income Benefit Picker -->
-    <div id="deathIncomeBenefitPicker" class="picker-container" style="display: none;">
-      <div class="column">
-        <!-- Dynamic content for death income benefit insured types will go here -->
-      </div>
-      <div class="radioLabelTotal">
-        <span class="label">TOTAL DEATH INCOME BENEFIT PREMIUM =</span>
-        <span id="totalDeathIncomeBenefitPremium" class="total-amount-text">= M0.00</span>
-      </div>
-    </div>
+<!-- Death Income Benefit Picker -->
+<div id="deathIncomeBenefitPicker" class="picker-container" style="display: none;">
+  <div class="column">
+    <!-- Dynamic content for death income benefit insured types will go here -->
   </div>
+  <div class="radioLabelTotal">
+    <span class="label">TOTAL DEATH INCOME BENEFIT PREMIUM =</span>
+    <span id="totalDeathIncomeBenefitPremium" class="total-amount-text">= M0.00</span>
+  </div>
+  
+  <!-- Cover Amount Display for Death Income -->
+  <div class="deathIncomeCoverAmountDisplay">Cover Amount: M0.00</div>
+</div>
+
 
 <!-- Error Message Section -->
 <div id="error-section">
