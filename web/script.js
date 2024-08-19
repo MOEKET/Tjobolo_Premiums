@@ -64,8 +64,8 @@ function updateBenefitTotal(type, reset = false) {
     document.getElementById('totalMonthlyProviderBenefitPremium').textContent = reset ? 'M0.00' : `M${monthlyProviderBenefitTotal.toFixed(2)}`;
   } else if (type === 'deathIncome') { // Added for Death Income Benefit
     deathIncomeBenefitTotal = total;
-    document.getElementById('deathIncomeBenefitAmount').textContent = `M${deathIncomeBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalDeathIncomeBenefitPremium').textContent = `M${deathIncomeBenefitTotal.toFixed(2)}`;
+    document.getElementById('deathIncomeBenefitAmount').textContent = reset ? 'M0.00' : `M${deathIncomeBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalDeathIncomeBenefitPremium').textContent = reset ? 'M0.00' : `M${deathIncomeBenefitTotal.toFixed(2)}`;
   }
 
   // Recalculate the totals
