@@ -21,16 +21,18 @@
       <i class="fas fa-chevron-down"></i>
     </div>
 
-    <!-- Funeral Benefit Picker -->
-    <div id="funeralBenefitPicker" class="picker-container" style="display: none;">
-      <div class="column">
-        <!-- Dynamic content for funeral benefit insured types will go here -->
-      </div>
-      <div class="radioLabelTotal">
-        <span class="label">TOTAL FUNERAL BENEFIT PREMIUM =</span>
-        <span id="totalFuneralBenefitPremium" class="total-amount-text">= M0.00</span>
-      </div>
-    </div>
+<!-- Funeral Benefit Picker -->
+<div id="funeralBenefitPicker" class="picker-container" style="display: none;">
+  <div class="column" id="funeralParentsContainer">
+    <!-- Dynamic content for funeral benefit insured types will go here -->
+    <div id="pickerSection"></div>
+
+  </div>
+  <div class="radioLabelTotal">
+    <span class="label">TOTAL FUNERAL BENEFIT PREMIUM =</span>
+    <span id="totalFuneralBenefitPremium" class="total-amount-text">= M0.00</span>
+  </div>
+</div>
 
     <!-- Tombstone Benefit Button -->
     <div class="button" onclick="toggleBenefitPicker('tombstone')">
@@ -39,16 +41,16 @@
       <i class="fas fa-chevron-down"></i>
     </div>
 
-    <!-- Tombstone Benefit Picker -->
-    <div id="tombstoneBenefitPicker" class="picker-container" style="display: none;">
-      <div class="column">
-        <!-- Dynamic content for tombstone benefit insured types will go here -->
-      </div>
-      <div class="radioLabelTotal">
-        <span class="label">TOTAL TOMBSTONE BENEFIT PREMIUM =</span>
-        <span id="totalTombstoneBenefitPremium" class="total-amount-text">= M0.00</span>
-      </div>
-    </div>
+<!-- Tombstone Benefit Picker -->
+<div id="tombstoneBenefitPicker" class="picker-container" style="display: none;">
+  <div class="column" id="tombstoneParentsContainer">
+    <!-- Dynamic content for tombstone benefit insured types will go here -->
+  </div>
+  <div class="radioLabelTotal">
+    <span class="label">TOTAL TOMBSTONE BENEFIT PREMIUM =</span>
+    <span id="totalTombstoneBenefitPremium" class="total-amount-text">= M0.00</span>
+  </div>
+</div>
 
     <!-- Cow Benefit Button -->
     <div class="button" onclick="toggleBenefitPicker('cow')">
@@ -57,38 +59,37 @@
       <i class="fas fa-chevron-down"></i>
     </div>
 
-    <!-- Cow Benefit Picker -->
-    <div id="cowBenefitPicker" class="picker-container" style="display: none;">
-      <div class="column">
-        <!-- Dynamic content for cow benefit insured types will go here -->
-      </div>
-      <div class="radioLabelTotal">
-        <span class="label">TOTAL COW BENEFIT PREMIUM =</span>
-        <span id="totalCowBenefitPremium" class="total-amount-text">= M0.00</span>
-      </div>
-    </div>
-
-   <!-- Monthly Provider Benefit Button -->
-<div class="button" onclick="toggleBenefitPicker('monthlyProvider')">
-  <span class="buttonText">Monthly Provider Benefit</span>
-  <span id="monthlyProviderBenefitAmount" class="buttonText">M0.00</span>
-  <i class="fas fa-chevron-down"></i>
-</div>
-
-<!-- Monthly Provider Benefit Picker -->
-<div id="monthlyProviderBenefitPicker" class="picker-container" style="display: none;">
-  <div class="column">
-    <!-- Dynamic content for monthly provider benefit insured types will go here -->
+<!-- Cow Benefit Picker -->
+<div id="cowBenefitPicker" class="picker-container" style="display: none;">
+  <div class="column" id="cowParentsContainer">
+    <!-- Dynamic content for cow benefit insured types will go here -->
   </div>
   <div class="radioLabelTotal">
-    <span class="label">TOTAL MONTHLY PROVIDER BENEFIT PREMIUM =</span>
-    <span id="totalMonthlyProviderBenefitPremium" class="total-amount-text">= M0.00</span>
+    <span class="label">TOTAL COW BENEFIT PREMIUM =</span>
+    <span id="totalCowBenefitPremium" class="total-amount-text">= M0.00</span>
   </div>
-  
-  <!-- Cover Amount Display for Monthly Provider -->
-  <div class="monthlyProviderCoverAmountDisplay">Cover Amount: M0.00</div>
 </div>
 
+   <!-- Monthly Provider Benefit Button -->
+    <div class="button" onclick="toggleBenefitPicker('monthlyProvider')">
+      <span class="buttonText">Monthly Provider Benefit</span>
+      <span id="monthlyProviderBenefitAmount" class="buttonText">M0.00</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
+
+    <!-- Monthly Provider Benefit Picker -->
+    <div id="monthlyProviderBenefitPicker" class="picker-container" style="display: none;">
+      <div class="column">
+        <!-- Dynamic content for monthly provider benefit insured types will go here -->
+      </div>
+      <div class="radioLabelTotal">
+        <span class="label">TOTAL MONTHLY PROVIDER BENEFIT PREMIUM =</span>
+        <span id="totalMonthlyProviderBenefitPremium" class="total-amount-text">= M0.00</span>
+      </div>
+      
+      <!-- Cover Amount Display for Monthly Provider -->
+      <div class="monthlyProviderCoverAmountDisplay">Cover Amount: M0.00</div>
+    </div>
 
     <!-- Life Cover Benefit Button -->
     <div class="button" onclick="toggleBenefitPicker('lifeCover')">
@@ -109,41 +110,48 @@
     </div>
 
     <!-- Death Income Benefit Button -->
-<div class="button" onclick="toggleBenefitPicker('deathIncome')">
-  <span class="buttonText">Death Income Benefit</span>
-  <span id="deathIncomeBenefitAmount" class="buttonText">M0.00</span>
-  <i class="fas fa-chevron-down"></i>
-</div>
+    <div class="button" onclick="toggleBenefitPicker('deathIncome')">
+      <span class="buttonText">Death Income Benefit</span>
+      <span id="deathIncomeBenefitAmount" class="buttonText">M0.00</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
 
-<!-- Death Income Benefit Picker -->
-<div id="deathIncomeBenefitPicker" class="picker-container" style="display: none;">
-  <div class="column">
-    <!-- Dynamic content for death income benefit insured types will go here -->
+    <!-- Death Income Benefit Picker -->
+    <div id="deathIncomeBenefitPicker" class="picker-container" style="display: none;">
+      <div class="column">
+        <!-- Dynamic content for death income benefit insured types will go here -->
+      </div>
+      <div class="radioLabelTotal">
+        <span class="label">TOTAL DEATH INCOME BENEFIT PREMIUM =</span>
+        <span id="totalDeathIncomeBenefitPremium" class="total-amount-text">= M0.00</span>
+      </div>
+      
+      <!-- Cover Amount Display for Death Income -->
+      <div class="deathIncomeCoverAmountDisplay">Cover Amount: M0.00</div>
+    </div>
+
+    <!-- Error Message Section -->
+    <div id="error-section">
+      <div id="mainLifeInsuredError" class="error-message"></div>
+      <div id="error-message" style="display: none; color: red;"></div>
+    </div>
+
+    <!-- Totals Section -->
+    <div id="totals-section" class="totals-section">
+      <span class="total-label">Subtotal = M<span id="subtotal">0.00</span></span><br>
+      <span class="total-label">Policy Fee = M10.00</span><br>
+      <span class="total-label">TOTAL PREMIUM (incl. fee) = M<span id="totalPremium">10.00</span></span>
+    </div>
   </div>
-  <div class="radioLabelTotal">
-    <span class="label">TOTAL DEATH INCOME BENEFIT PREMIUM =</span>
-    <span id="totalDeathIncomeBenefitPremium" class="total-amount-text">= M0.00</span>
-  </div>
-  
-  <!-- Cover Amount Display for Death Income -->
-  <div class="deathIncomeCoverAmountDisplay">Cover Amount: M0.00</div>
-</div>
-
-
-<!-- Error Message Section -->
-<div id="error-section">
-  <div id="mainLifeInsuredError" class="error-message"></div>
-  <div id="error-message" style="display: none; color: red;"></div>
-</div>
-
-<!-- Totals Section -->
-<div id="totals-section" class="totals-section">
-  <span class="total-label">Subtotal = M<span id="subtotal">0.00</span></span><br>
-  <span class="total-label">Policy Fee = M10.00</span><br>
-  <span class="total-label">TOTAL PREMIUM (incl. fee) = M<span id="totalPremium">10.00</span></span>
-</div>
 
   <script src="benefitData.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+

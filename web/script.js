@@ -15,8 +15,13 @@ const insuredTypeLongNames = {
   partner: 'Partner',
   children: 'Children',
   additionalChildren: 'Additional Child',
+  additionalChildren1: 'Additional Child 1',
+  additionalChildren2: 'Additional Child 2',
+  additionalChildren3: 'Additional Child',
   extendedFamilyChildren: 'Extended Family Child',
   parents: 'Parent',
+  parents1: 'Parent',
+  parents2: 'Parent',
   extendedFamilyMembers: 'Extended Family Member',
 };
 
@@ -38,10 +43,31 @@ function toggleBenefitPicker(type) {
 
 function updateBenefitTotal(type, reset = false) {
   let total = 0;
+
+  // Sum up all amounts for the specified type
   for (const insuredType in selectedAmounts[type]) {
-    total += selectedAmounts[type][insuredType].amount;
+    if (
+      insuredType === 'additionalChildren' ||
+      insuredType === 'parents' ||
+      insuredType === 'extendedFamilyMembers' ||
+      insuredType === 'extendedFamilyChildren'
+    ) {
+      // Ensure we're iterating over the actual indexes
+      const insuredEntries = selectedAmounts[type][insuredType];
+      if (insuredEntries && typeof insuredEntries === 'object') {
+        for (const pickerIndex in insuredEntries) {
+          // Add only if the amount exists and is valid
+          const amount = insuredEntries[pickerIndex]?.amount || 0;
+          total += amount;
+        }
+      }
+    } else {
+      // Add the amount for other insured types
+      total += selectedAmounts[type][insuredType]?.amount || 0;
+    }
   }
 
+  // Update totals and relevant UI elements
   if (type === 'funeral') {
     funeralBenefitTotal = total;
     document.getElementById('funeralBenefitAmount').textContent = reset ? 'M0.00' : `M${funeralBenefitTotal.toFixed(2)}`;
@@ -56,157 +82,176 @@ function updateBenefitTotal(type, reset = false) {
     document.getElementById('totalCowBenefitPremium').textContent = reset ? 'M0.00' : `M${cowBenefitTotal.toFixed(2)}`;
   } else if (type === 'lifeCover') {
     lifeCoverBenefitTotal = total;
-    document.getElementById('lifeCoverBenefitAmount').textContent = `M${lifeCoverBenefitTotal.toFixed(2)}`;
-    document.getElementById('totalLifeCoverBenefitPremium').textContent = `M${lifeCoverBenefitTotal.toFixed(2)}`;
+    document.getElementById('lifeCoverBenefitAmount').textContent = reset ? 'M0.00' : `M${lifeCoverBenefitTotal.toFixed(2)}`;
+    document.getElementById('totalLifeCoverBenefitPremium').textContent = reset ? 'M0.00' : `M${lifeCoverBenefitTotal.toFixed(2)}`;
   } else if (type === 'monthlyProvider') {
     monthlyProviderBenefitTotal = total;
     document.getElementById('monthlyProviderBenefitAmount').textContent = reset ? 'M0.00' : `M${monthlyProviderBenefitTotal.toFixed(2)}`;
     document.getElementById('totalMonthlyProviderBenefitPremium').textContent = reset ? 'M0.00' : `M${monthlyProviderBenefitTotal.toFixed(2)}`;
-  } else if (type === 'deathIncome') { // Added for Death Income Benefit
+  } else if (type === 'deathIncome') {
     deathIncomeBenefitTotal = total;
     document.getElementById('deathIncomeBenefitAmount').textContent = reset ? 'M0.00' : `M${deathIncomeBenefitTotal.toFixed(2)}`;
     document.getElementById('totalDeathIncomeBenefitPremium').textContent = reset ? 'M0.00' : `M${deathIncomeBenefitTotal.toFixed(2)}`;
   }
 
-  // Recalculate the totals
+  // Recalculate overall totals
   calculateTotals();
 }
+
+
+
 
 let selectedAgeBand = {}; // Store the selected age band for each insured type globally
 
 
-function createPicker(type, insuredType, data) {
+function createPicker(type, insuredType, data, parentIndex = 1) {
   const container = document.createElement('div');
   container.classList.add('pickerContainer');
+  container.dataset.parentIndex = parentIndex;
 
   const label = document.createElement('label');
-  label.textContent = insuredTypeLongNames[insuredType] || insuredType;
+  label.textContent = `${insuredTypeLongNames[insuredType] || insuredType}${parentIndex > 1 ? ` Parent ${parentIndex}` : ''}`;
   container.appendChild(label);
 
-  const ageBandPicker = document.createElement('select');
-  ageBandPicker.classList.add('picker');
+  // Determine the number of pickers for the insured type
+  const numPickers = getNumPickersForInsuredType(insuredType);
 
-  const defaultAgeBandOption = document.createElement('option');
-  defaultAgeBandOption.value = '';
-  defaultAgeBandOption.textContent = 'Age Band';
-  ageBandPicker.appendChild(defaultAgeBandOption);
+  for (let i = 1; i <= numPickers; i++) {
+    const pickerGroup = document.createElement('div');
+    pickerGroup.classList.add('pickerGroup');
+    pickerGroup.dataset.groupIndex = i;
 
-  for (const ageBand in data[insuredType]) {
-    const option = document.createElement('option');
-    option.value = ageBand;
-    option.textContent = ageBand;
-    ageBandPicker.appendChild(option);
-  }
+    // Age Band Picker
+    const ageBandPicker = document.createElement('select');
+    ageBandPicker.classList.add('picker', 'ageBandPicker');
+    ageBandPicker.dataset.insuredType = insuredType;
+    ageBandPicker.dataset.parentIndex = parentIndex;
+    ageBandPicker.dataset.groupIndex = i;
 
-  container.appendChild(ageBandPicker);
+    const defaultAgeBandOption = document.createElement('option');
+    defaultAgeBandOption.value = '';
+    defaultAgeBandOption.textContent = `Age Band`;
+    ageBandPicker.appendChild(defaultAgeBandOption);
 
-  const coverAmountPicker = document.createElement('select');
-  coverAmountPicker.classList.add('picker');
+    for (const ageBand in data[insuredType]) {
+      const option = document.createElement('option');
+      option.value = ageBand;
+      option.textContent = ageBand;
+      ageBandPicker.appendChild(option);
+    }
 
-  const defaultCoverAmountOption = document.createElement('option');
-  defaultCoverAmountOption.value = '';
-  defaultCoverAmountOption.textContent = 'Sum Assured';
-  coverAmountPicker.appendChild(defaultCoverAmountOption);
+    pickerGroup.appendChild(ageBandPicker);
 
-  // Update the cover amount options based on the selected age band
-  updateCoverAmountOptions(ageBandPicker.value, coverAmountPicker, data, insuredType);
+    // Cover Amount Picker
+    const coverAmountPicker = document.createElement('select');
+    coverAmountPicker.classList.add('picker', 'coverAmountPicker');
+    coverAmountPicker.dataset.insuredType = insuredType;
+    coverAmountPicker.dataset.parentIndex = parentIndex;
+    coverAmountPicker.dataset.groupIndex = i;
 
-  container.appendChild(coverAmountPicker);
+    const defaultCoverAmountOption = document.createElement('option');
+    defaultCoverAmountOption.value = '';
+    defaultCoverAmountOption.textContent = `Sum Assured `;
+    coverAmountPicker.appendChild(defaultCoverAmountOption);
 
-  const periodPicker = document.createElement('select');
-  periodPicker.classList.add('picker');
+    pickerGroup.appendChild(coverAmountPicker);
 
-  if (type === 'monthlyProvider' || type === 'deathIncome') {
-    const defaultPeriodOption = document.createElement('option');
-    defaultPeriodOption.value = '';
-    defaultPeriodOption.textContent = 'Period';
-    periodPicker.appendChild(defaultPeriodOption);
-
-    container.appendChild(periodPicker);
-  }
-
-  const amountDisplay = document.createElement('div');
-  amountDisplay.classList.add('amountDisplay');
-  amountDisplay.textContent = '= M0.00'; // Default display value
-  container.appendChild(amountDisplay);
-
-  // If the picker is for a benefit other than Funeral Benefit, disable the age band picker
-if (type !== 'funeral') {
-  ageBandPicker.disabled = true;
-
-  // Event listener to update cover amount options for non-Funeral Benefits
-  ageBandPicker.addEventListener('change', () => {
-    const ageBandValue = ageBandPicker.value;
-
-    // Only update cover amount options for the current picker
-    updateCoverAmountOptions(ageBandValue, coverAmountPicker, data, insuredType);
-    coverAmountPicker.dispatchEvent(new Event('change'));
-  });
-}
-
-// Event listener for age band selection in Funeral Benefit
-if (type === 'funeral') {
-  ageBandPicker.addEventListener('change', () => {
-    const ageBandValue = ageBandPicker.value;
-
-    // Update age band selection for all other benefits for the same insured type
-    const pickers = document.querySelectorAll(`select[data-insured-type="${insuredType}"].ageBandPicker`);
-    pickers.forEach(picker => {
-      if (picker !== ageBandPicker) {
-        picker.value = ageBandValue;
-        updateCoverAmountOptions(ageBandValue, picker.nextElementSibling, data, insuredType);
-        picker.dispatchEvent(new Event('change'));
-      }
-    });
-
-    // Also update the cover amount options for the current picker
-    updateCoverAmountOptions(ageBandValue, coverAmountPicker, data, insuredType);
-    coverAmountPicker.dispatchEvent(new Event('change'));
-  });
-}
-
-
-  coverAmountPicker.addEventListener('change', () => {
-    const ageBandValue = ageBandPicker.value;
-    const coverAmountValue = coverAmountPicker.value;
+    // Period Picker (if applicable)
+    const periodPicker = document.createElement('select');
+    periodPicker.classList.add('picker', 'periodPicker');
+    periodPicker.dataset.insuredType = insuredType;
+    periodPicker.dataset.parentIndex = parentIndex;
+    periodPicker.dataset.groupIndex = i;
 
     if (type === 'monthlyProvider' || type === 'deathIncome') {
-      updatePeriodOptions(periodPicker, data, insuredType, ageBandValue, coverAmountValue);
+      const defaultPeriodOption = document.createElement('option');
+      defaultPeriodOption.value = '';
+      defaultPeriodOption.textContent = `Period`;
+      periodPicker.appendChild(defaultPeriodOption);
+      pickerGroup.appendChild(periodPicker);
     }
 
-    if ((type === 'monthlyProvider' || type === 'deathIncome') && !periodPicker.value) {
-      amountDisplay.textContent = '= M0.00';
-    } else {
-      // Update the amount display
-      const combinedKey = periodPicker.value ? `${coverAmountValue}x${periodPicker.value}` : coverAmountValue;
-      const amount = data[insuredType][ageBandValue][combinedKey] || 0;
-      amountDisplay.textContent = `= M${amount.toFixed(2)}`;
-      updateBenefitAmount(type, insuredType, ageBandValue, coverAmountValue, data, periodPicker.value);
-    }
-  });
+    // Amount Display
+    const amountDisplay = document.createElement('div');
+    amountDisplay.classList.add('amountDisplay');
+    amountDisplay.textContent = `= M0.00`;
+    pickerGroup.appendChild(amountDisplay);
 
-  if (type === 'monthlyProvider' || type === 'deathIncome') {
-    periodPicker.addEventListener('change', () => {
+    // Append picker group to the container
+    container.appendChild(pickerGroup);
+
+    // Add picker logic
+    ageBandPicker.addEventListener('change', () => {
+      const ageBandValue = ageBandPicker.value;
+      updateCoverAmountOptions(ageBandValue, coverAmountPicker, data, insuredType);
+      coverAmountPicker.dispatchEvent(new Event('change'));
+    });
+
+    coverAmountPicker.addEventListener('change', () => {
       const ageBandValue = ageBandPicker.value;
       const coverAmountValue = coverAmountPicker.value;
-      const periodValue = periodPicker.value;
 
-      let amount = 0;
-      if (ageBandValue && coverAmountValue && periodValue) {
-        const combinedKey = `${coverAmountValue}x${periodValue}`;
-        amount = data[insuredType][ageBandValue][combinedKey] || 0;
+      if (type === 'monthlyProvider' || type === 'deathIncome') {
+        updatePeriodOptions(periodPicker, data, insuredType, ageBandValue, coverAmountValue);
       }
-      amountDisplay.textContent = `= M${amount.toFixed(2)}`;
 
-      updateBenefitAmount(type, insuredType, ageBandValue, coverAmountValue, data, periodValue);
+      const combinedKey = periodPicker.value
+        ? `${coverAmountValue}x${periodPicker.value}`
+        : coverAmountValue;
+
+      const amount = data[insuredType][ageBandValue]?.[combinedKey] || 0;
+      amountDisplay.textContent = `= M${amount.toFixed(2)}`;
+      updateBenefitAmount(type, insuredType, ageBandValue, coverAmountValue, data, periodPicker.value);
     });
+
+    if (type === 'monthlyProvider' || type === 'deathIncome') {
+      periodPicker.addEventListener('change', () => {
+        const ageBandValue = ageBandPicker.value;
+        const coverAmountValue = coverAmountPicker.value;
+        const periodValue = periodPicker.value;
+
+        const combinedKey = `${coverAmountValue}x${periodValue}`;
+        const amount = data[insuredType][ageBandValue]?.[combinedKey] || 0;
+
+        amountDisplay.textContent = `= M${amount.toFixed(2)}`;
+        updateBenefitAmount(type, insuredType, ageBandValue, coverAmountValue, data, periodValue);
+      });
+    }
   }
 
-  // Add data attributes for easier selection in the future
-  ageBandPicker.dataset.insuredType = insuredType;
-  ageBandPicker.classList.add('ageBandPicker');
-
   return container;
+}
+
+// Logic to determine the number of pickers for specific insured types
+function getNumPickersForInsuredType(insuredType) {
+  const insuredTypeMapping = {
+    additionalChildren: 4,
+    parents: 4,
+    extendedFamilyMembers: 4,
+    extendedFamilyChildren: 4,
+  };
+  return insuredTypeMapping[insuredType] || 1; // Default to 1 picker for other types
+}
+
+
+
+
+
+
+function addMoreParents(type, containerId) {
+  const container = document.getElementById(containerId);
+  const currentParents = container.querySelectorAll('.pickerContainer').length;
+
+  if (currentParents < 3) {
+    const parentIndex = currentParents + 1;
+    const picker = createPicker(type, 'parent', benefitData, parentIndex);
+    container.appendChild(picker);
+  }
+
+  if (currentParents + 1 === 3) {
+    // Hide the "Add More Parents" button after reaching 3 parents
+    container.nextElementSibling.style.display = 'none';
+  }
 }
 
 
@@ -241,7 +286,6 @@ function updateCoverAmountOptions(ageBand, coverAmountPicker, data, insuredType)
 }
 
 
-
 // Update the period options for the picker and display the calculated cover amount
 function updatePeriodOptions(periodPicker, data, insuredType, ageBand, coverAmount, benefitType) {
   // Clear the period picker options
@@ -251,7 +295,7 @@ function updatePeriodOptions(periodPicker, data, insuredType, ageBand, coverAmou
   const defaultPeriodOption = document.createElement('option');
   defaultPeriodOption.value = '';
   defaultPeriodOption.textContent = 'Period';
-  periodPicker.appendChild(defaultPeriodOption);
+  periodPicker.appendChild(defaultPeriodOption);                
 
   // Ensure that the cover amount display for the specific benefit is added only once
   let coverAmountDisplay = document.querySelector(`.${benefitType}CoverAmountDisplay`);
@@ -296,7 +340,7 @@ function updatePeriodOptions(periodPicker, data, insuredType, ageBand, coverAmou
     }
   });
 }
-
+                                      
 
 
 
@@ -355,7 +399,7 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
         selectedAmounts[benefitType][insuredType].amount = 0;
         selectedAmounts[benefitType][insuredType].coverAmount = '';
       }
-    });
+    }); 
 
     toggleTotalsSection(false); // Hide totals section and show error message
 

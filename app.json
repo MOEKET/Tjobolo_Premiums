@@ -19,15 +19,16 @@
         "foregroundImage": "./assets/Mekorotlo-01.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.max_ramajoe.Tjobolo_Premiums"
+      "package": "com.moeketsi_ramajoe.Tjobolo_Premiums"
     },
     "web": {
       "favicon": "./assets/Mekorotlo-01.png"
     },
     "extra": {
       "eas": {
-        "projectId": "3407c797-5c38-403e-9505-42befe3d6bff"
+        "projectId": "3b2e40dd-e602-4c20-b00a-e5238d3cca52"
       }
-    }
+    },
+    "owner": "moeketsi_ramajoe"
   }
 }
