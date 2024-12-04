@@ -44,7 +44,7 @@ function toggleBenefitPicker(type) {
 function updateBenefitTotal(type, reset = false) {
   let total = 0;
 
-  // Sum up all amounts for the specified type
+
   for (const insuredType in selectedAmounts[type]) {
     if (
       insuredType === 'additionalChildren' ||
@@ -52,20 +52,24 @@ function updateBenefitTotal(type, reset = false) {
       insuredType === 'extendedFamilyMembers' ||
       insuredType === 'extendedFamilyChildren'
     ) {
-      // Ensure we're iterating over the actual indexes
+      // Iterate through all parent indices
       const insuredEntries = selectedAmounts[type][insuredType];
       if (insuredEntries && typeof insuredEntries === 'object') {
-        for (const pickerIndex in insuredEntries) {
-          // Add only if the amount exists and is valid
-          const amount = insuredEntries[pickerIndex]?.amount || 0;
-          total += amount;
+        for (const parentIndex in insuredEntries) {
+          const parentGroup = insuredEntries[parentIndex];
+          // Iterate through all group indices within each parent
+          for (const groupIndex in parentGroup) {
+            total += parentGroup[groupIndex]?.amount || 0;
+          }
         }
       }
     } else {
-      // Add the amount for other insured types
+      // Add the amount directly for other insured types
       total += selectedAmounts[type][insuredType]?.amount || 0;
     }
   }
+  
+    
 
   // Update totals and relevant UI elements
   if (type === 'funeral') {
@@ -357,7 +361,7 @@ function toggleTotalsSection(show) {
   }
 }
 
-function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, period = null) {
+function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, period = null, parentIndex = 1, groupIndex = 1) {
   let amount = 0;
   const combinedKey = period ? `${coverAmount}x${period}` : coverAmount;
 
@@ -365,26 +369,62 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
     amount = data[insuredType]?.[ageBand]?.[combinedKey] || 0;
   }
 
-  // Ensure selectedAmounts[type] exists
+  // Ensure `selectedAmounts[type]` exists
   if (!selectedAmounts[type]) {
     selectedAmounts[type] = {};
   }
 
-  // Ensure selectedAmounts[type][insuredType] exists
-  if (!selectedAmounts[type][insuredType]) {
-    selectedAmounts[type][insuredType] = { amount: 0, coverAmount: '' };
+  // Handle insured types with multiple instances
+  if (
+    insuredType === 'additionalChildren' ||
+    insuredType === 'parents' ||
+    insuredType === 'extendedFamilyMembers' ||
+    insuredType === 'extendedFamilyChildren'
+  ) {
+    // Ensure nested structure exists
+    if (!selectedAmounts[type][insuredType]) {
+      selectedAmounts[type][insuredType] = {};
+    }
+    if (!selectedAmounts[type][insuredType][parentIndex]) {
+      selectedAmounts[type][insuredType][parentIndex] = {};
+    }
+
+    // Update the specific group entry
+    selectedAmounts[type][insuredType][parentIndex][groupIndex] = {
+      amount,
+      coverAmount: period ? coverAmount * period : coverAmount,
+    };
+  } else {
+    // Handle single-instance insured types
+    if (!selectedAmounts[type][insuredType]) {
+      selectedAmounts[type][insuredType] = { amount: 0, coverAmount: '' };
+    }
+
+    selectedAmounts[type][insuredType].amount = amount;
+    selectedAmounts[type][insuredType].coverAmount = period ? coverAmount * period : coverAmount;
   }
 
-  // Update the selected amount and cover amount
-  selectedAmounts[type][insuredType].amount = amount;
-  selectedAmounts[type][insuredType].coverAmount = period ? coverAmount * period : coverAmount;
-
-  // Calculate the total cover amount for the insured type for relevant benefits
+  // Calculate the total cover amount for the insured type across relevant benefits
   const relevantBenefits = ['funeral', 'tombstone', 'cow', 'monthlyProvider'];
   let totalCoverAmount = 0;
+
   for (const benefitType of relevantBenefits) {
     if (selectedAmounts[benefitType] && selectedAmounts[benefitType][insuredType]) {
-      totalCoverAmount += parseFloat(selectedAmounts[benefitType][insuredType].coverAmount || 0);
+      if (
+        insuredType === 'additionalChildren' ||
+        insuredType === 'parents' ||
+        insuredType === 'extendedFamilyMembers' ||
+        insuredType === 'extendedFamilyChildren'
+      ) {
+        for (const parentIndex in selectedAmounts[benefitType][insuredType]) {
+          const parentGroup = selectedAmounts[benefitType][insuredType][parentIndex];
+          for (const groupIndex in parentGroup) {
+            totalCoverAmount += parseFloat(parentGroup[groupIndex].coverAmount || 0);
+          }
+        }
+      } else {
+        totalCoverAmount += parseFloat(selectedAmounts[benefitType][insuredType].coverAmount || 0);
+      }
     }
   }
 
@@ -394,17 +434,32 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
     errorMessageElement.style.color = 'red';
 
     // Reset amount and cover amount for relevant benefits
-    relevantBenefits.forEach(benefitType => {
+    relevantBenefits.forEach((benefitType) => {
       if (selectedAmounts[benefitType] && selectedAmounts[benefitType][insuredType]) {
-        selectedAmounts[benefitType][insuredType].amount = 0;
-        selectedAmounts[benefitType][insuredType].coverAmount = '';
+        if (
+          insuredType === 'additionalChildren' ||
+          insuredType === 'parents' ||
+          insuredType === 'extendedFamilyMembers' ||
+          insuredType === 'extendedFamilyChildren'
+        ) {
+          for (const parentIndex in selectedAmounts[benefitType][insuredType]) {
+            const parentGroup = selectedAmounts[benefitType][insuredType][parentIndex];
+            for (const groupIndex in parentGroup) {
+              parentGroup[groupIndex].amount = 0;
+              parentGroup[groupIndex].coverAmount = '';
+            }
+          }
+        } else {
+          selectedAmounts[benefitType][insuredType].amount = 0;
+          selectedAmounts[benefitType][insuredType].coverAmount = '';
+        }
       }
-    }); 
+    });
 
     toggleTotalsSection(false); // Hide totals section and show error message
 
     // Turn buttons red and reset total benefit amount for relevant benefits
-    relevantBenefits.forEach(benefitType => {
+    relevantBenefits.forEach((benefitType) => {
       const buttonElement = document.querySelector(`.button[onclick="toggleBenefitPicker('${benefitType}')"]`);
       if (buttonElement) {
         buttonElement.style.backgroundColor = 'red';
@@ -416,7 +471,7 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
     toggleTotalsSection(true); // Show totals section and hide error message
 
     // Reset buttons color and restore total benefit amount for relevant benefits
-    relevantBenefits.forEach(benefitType => {
+    relevantBenefits.forEach((benefitType) => {
       const buttonElement = document.querySelector(`.button[onclick="toggleBenefitPicker('${benefitType}')"]`);
       if (buttonElement) {
         buttonElement.style.backgroundColor = ''; // Reset to original color
@@ -429,6 +484,7 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
   // Update the total benefit amount for the current type
   updateBenefitTotal(type);
 }
+
 
 
 // Function to calculate and update the total of all benefits
