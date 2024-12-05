@@ -428,9 +428,24 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
     }
   }
 
+  // Fetch mainLifeInsured cover amount
+  let mainLifeInsuredCoverAmount = 0;
+  for (const benefitType of relevantBenefits) {
+    if (
+      selectedAmounts[benefitType] &&
+      selectedAmounts[benefitType]['mainLifeInsured']
+    ) {
+      mainLifeInsuredCoverAmount = Math.max(
+        mainLifeInsuredCoverAmount,
+        parseFloat(selectedAmounts[benefitType]['mainLifeInsured'].coverAmount || 0)
+      );
+    }
+  }
+
   const errorMessageElement = document.getElementById('mainLifeInsuredError');
-  if (totalCoverAmount > 75000) {
-    errorMessageElement.textContent = `Error: The total cover amount for ${insuredType} exceeds the maximum limit of 75,000.`;
+
+  if (totalCoverAmount > mainLifeInsuredCoverAmount) {
+    errorMessageElement.textContent = `Error: The cover amount for ${insuredTypeLongNames[insuredType]} should not exceed that of Main Life Insured.`;
     errorMessageElement.style.color = 'red';
 
     // Reset amount and cover amount for relevant benefits
