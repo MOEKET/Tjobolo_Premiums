@@ -455,7 +455,7 @@ function updateBenefitAmount(type, insuredType, ageBand, coverAmount, data, peri
           insuredType === 'additionalChildren' ||
           insuredType === 'parents' ||
           insuredType === 'extendedFamilyMembers' ||
-          insuredType === 'extendedFamilyChildren'
+          insuredType === 'extendedFamilyChildren' 
         ) {
           for (const parentIndex in selectedAmounts[benefitType][insuredType]) {
             const parentGroup = selectedAmounts[benefitType][insuredType][parentIndex];

@@ -2227,7 +2227,6 @@ const getCombinedButtonStyleTwo = () => {
     )}
   </View>
 )}
-
           {insuredType === 'parents' && canAddMore(insuredType, parentsCount, 4) && (
             <View style={styles.additionalChildrenContainer}>
               {Array.from({ length: parentsCount }, (_, index) => (
