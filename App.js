@@ -3568,6 +3568,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center', 
     justifyContent: 'flex-start', 
+    alignItems: 'center', 
+    justifyContent: 'flex-start', 
     marginBottom: 16,
     width: '100%',
   },
