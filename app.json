@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "Tjobolo_Premiums",
+    "name": "Tjobolo Premiums Calculator",
     "slug": "Tjobolo_Premiums",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Mekorotlo-01.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/favicon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,12 +16,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Mekorotlo-01.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.moeketsi_ramajoe.Tjobolo_Premiums"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/Mekorotlo-01.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3b2e40dd-e602-4c20-b00a-e5238d3cca52"
+      }
+    },
+    "owner": "moeketsi_ramajoe"
   }
 }

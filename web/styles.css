@@ -118,3 +118,124 @@
 
 
 
+
+.container {
+  padding: 16px;
+  background-color: #fff;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 5px; /* Adjust as needed */
+}
+
+.logo {
+  max-width: 150px; /* Adjust size as needed */
+  height: auto;
+}
+
+.heading {
+  color: #0b88ee;
+  font-weight: bold;
+  font-size: 23px; /* Adjust size as needed */
+  margin: 10px 0; /* Adjust margin as needed */
+}
+
+.button {
+  padding: 10px 20px;
+  background-color: #0b88ee;
+  color: white;
+  text-align: center;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.buttonText {
+  font-size: 16px;
+  color: white;
+}
+
+.icon {
+  margin-left: 10px;
+}
+
+.pickerContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker {
+  margin: 5px 0;
+}
+
+.radioContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.radioLabel {
+  margin-left: 10px;
+}
+
+.amountText {
+  font-size: 14px;
+  color: green;
+}
+
+.errorText {
+  font-size: 14px;
+  color: red;
+}
+
+.successText {
+  font-size: 14px;
+  color: green;
+}
+
+.totalAmountText {
+  font-size: 16px;
+  font-weight: bold;
+  color: purple;
+}
+
+.addMoreText {
+  color: blue;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.radioLabelTotal {
+  margin-top: 20px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Totals section styling */
+.totals-section {
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 2px solid #0b88ee;
+  text-align: center;
+}
+
+.total-label {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #a228db;
+}
+
+.button.red {
+  background-color: red !important;
+}
+
+
+
